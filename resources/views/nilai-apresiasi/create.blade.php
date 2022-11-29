@@ -54,7 +54,7 @@
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label for="nim">NIM</label>
-                                            <input type="text" id="nim" class="form-control" placeholder="NIM" name="nim" maxlength="11" required x-ref="nim" @change="getNamaMhs()">
+                                            <input type="text" id="nim" class="form-control" placeholder="NIM" name="nim" x-mask="99999999999" required x-ref="nim" @change="getNamaMhs()">
                                         </div>
                                     </div>
                                     <!-- Nama -->
@@ -155,6 +155,7 @@
 @endsection
 
 @push('scripts')
+    <script defer src="{{ asset('assets/vendors/alpine/alpine-mask@3.10.5.min.js') }}"></script>
     <script defer src="{{ asset('assets/vendors/alpine/alpine@3.10.5.min.js') }}"></script>
 
     <script>
