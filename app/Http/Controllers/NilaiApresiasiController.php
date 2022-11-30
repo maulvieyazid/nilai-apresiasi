@@ -85,6 +85,22 @@ class NilaiApresiasiController extends Controller
                 'sts_mk',
             ]);
 
+        // Ambil semua klkl_id di ApresiasiDetil yang memiliki data di ApresiasiMhs dengan smt dan nim yang dipass
+        $apresiasiDetil = ApresiasiDetil::query()
+            ->whereHas('mahasiswa', function ($mahasiswa) use ($nim, $smt) {
+                $mahasiswa->where('smt', $smt)->where('nim', $nim);
+            })
+            ->get()
+            ->pluck('klkl_id');
+
+        // Buang matkul yang sudah ada di apresiasiDetil
+        $matkul = $matkul
+            ->reject(function ($matkul) use ($apresiasiDetil) {
+                return $apresiasiDetil->contains($matkul->klkl_id);
+            })
+            // Setelah di reject, index data perlu di reset ulang, agar dapat terbaca di javascript
+            ->values();
+
         return response()->json([
             'matkul' => $matkul->count() ? $matkul : null,
         ]);
