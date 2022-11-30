@@ -82,7 +82,7 @@
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label for="tingkat_kegiatan">Tingkat Kegiatan</label>
-                                            <input type="email" id="tingkat_kegiatan" class="form-control" name="tingkat_kegiatan" placeholder="contoh: Nasional / Regional / Internasional" required>
+                                            <input type="text" id="tingkat_kegiatan" class="form-control" name="tingkat_kegiatan" placeholder="contoh: Nasional / Regional / Internasional" required>
                                         </div>
                                     </div>
                                     <div class="col-6">
