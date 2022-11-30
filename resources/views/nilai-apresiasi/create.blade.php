@@ -122,10 +122,16 @@
                                             </thead>
                                             <tbody>
                                                 <template x-for="matkul in semuaMatkul">
-                                                    <tr :class="!matkul.centang ? 'table-secondary' : ''" x-id="['nilai-matkul']">
+                                                    <tr :class="!matkul.centang ? 'table-secondary' : ''" x-id="['matkul-konversi']">
+
+                                                        <!-- Input type hidden ini untuk menyertakan data tambahan di array nilai_matkul -->
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][klkl_id]`" :value="matkul.klkl_id" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][nilai_huruf]`" :value="matkul.nilai_huruf" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_mk]`" :value="matkul.sts_mk" x-bind:disabled="!matkul.centang">
+
                                                         <td class="text-center">
                                                             <!-- Jika dicentang, maka langsung focus ke inputan nilai -->
-                                                            <input type="checkbox" id="checkbox1" class="form-check-input" x-model="matkul.centang" @change="if ($el.checked) document.getElementById($id('nilai-matkul')).focus()">
+                                                            <input type="checkbox" id="checkbox1" class="form-check-input" x-model="matkul.centang" @change="if ($el.checked) document.getElementById($id('matkul-konversi')).focus()">
                                                         </td>
                                                         <td class="text-center">
                                                             <span x-text="matkul.klkl_id"></span>
@@ -137,12 +143,13 @@
                                                             <span x-text="matkul.kurikulum.sks"></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <input type="number" step="any" class="form-control" :id="$id('nilai-matkul')" placeholder="Nilai" x-model="matkul.nilai_angka" x-bind:disabled="!matkul.centang"
-                                                                :name="`nilai_matkul['${matkul.klkl_id}*^*']`" @input.debounce="getNilaiHuruf(matkul)">
+                                                            <input type="number" step="any" class="form-control" :id="$id('matkul-konversi')" placeholder="Nilai" x-model="matkul.nilai_angka" x-bind:disabled="!matkul.centang"
+                                                                :name="`nilai_matkul[${matkul.klkl_id}][nilai_angka]`" @input.debounce="getNilaiHuruf(matkul)">
                                                         </td>
                                                         <td class="text-center">
                                                             <span x-text="matkul.nilai_huruf"></span>
-                                                            <div class="spinner-border text-dark d-none spinner-border-sm" role="status" :id="$id('nilai-matkul', 'loader')">
+
+                                                            <div class="spinner-border text-dark d-none spinner-border-sm" role="status" :id="$id('matkul-konversi', 'loader')">
                                                                 <span class="visually-hidden">Loading...</span>
                                                             </div>
                                                         </td>
@@ -265,8 +272,8 @@
                             });
                     },
 
-                    getNilaiHuruf(matkul, id_loader) {
-                        const loader_id = this.$id('nilai-matkul', 'loader')
+                    getNilaiHuruf(matkul) {
+                        const loader_id = this.$id('matkul-konversi', 'loader')
                         const loader = document.getElementById(loader_id);
 
                         // Tampilkan loader / spinner
