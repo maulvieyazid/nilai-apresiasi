@@ -41,7 +41,7 @@
                         </div>
                         <div class="card-body">
                             <!-- Jika canSubmit bernilai true maka lakukan submit, jika false, maka cegah submit -->
-                            <form class="form" method="POST" action="{{ route('nilaiapresiasi.store') }}" @submit.prevent="canSubmit && $el.submit()">
+                            <form class="form" enctype="multipart/form-data" method="POST" action="{{ route('nilaiapresiasi.store') }}" @submit.prevent="canSubmit && $el.submit()">
                                 @csrf
                                 <div class="row">
                                     <!-- Semester -->
@@ -97,7 +97,11 @@
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label for="bukti_kegiatan" class="form-label">Bukti Kegiatan</label>
-                                            <input class="form-control" type="file" id="bukti_kegiatan" name="bukti_kegiatan">
+                                            <input class="form-control" type="file" id="bukti_kegiatan" name="bukti_kegiatan" accept="application/pdf, image/jpeg, image/png, .docx"
+                                                onchange="(this.files[0] && this.files[0].size > 12582912) ? this.classList.add('is-invalid') : this.classList.remove('is-invalid');">
+                                            <div class="invalid-feedback">
+                                                Bukti Kegiatan tidak boleh lebih dari 10 MB
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- Tabel Pemilihan Matakuliah yang akan dikonversi -->
@@ -133,7 +137,7 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <input type="number" step="any" class="form-control" :id="$id('nilai-matkul')" placeholder="Nilai" :value="matkul.nilai" x-bind:disabled="!matkul.centang"
-                                                                :name="`nilai_matkul[${matkul.kode}]`">
+                                                                :name="`nilai_matkul[${matkul.klkl_id}]`">
                                                         </td>
                                                     </tr>
                                                 </template>

@@ -20,6 +20,13 @@ class NilaiApresiasiController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'bukti_kegiatan' => 'nullable|file|mimes:png,jpeg,pdf,doc,docx,xls,xlsx|max:12582912',
+        ], [
+            'bukti_kegiatan.mimes' => 'Bukti Kegiatan hanya boleh dalam bentuk PNG, JPEG, PDF, DOCX',
+            'bukti_kegiatan.max' => 'Ukuran maksimal bukti kegiatan yang diijinkan adalah 10 MB',
+        ]);
+
         dd($request->all());
     }
 
