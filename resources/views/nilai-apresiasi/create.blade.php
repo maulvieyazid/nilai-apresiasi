@@ -142,6 +142,9 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <span x-text="matkul.nilai_huruf"></span>
+                                                            <div class="spinner-border text-dark d-none spinner-border-sm" role="status" :id="$id('nilai-matkul', 'loader')">
+                                                                <span class="visually-hidden">Loading...</span>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -271,19 +274,28 @@
                                 // Menambahkan default attribut centang, nilai_angka, nilai_huruf
                                 const matkul = data.matkul.map(matkul => {
                                     matkul.centang = false;
-                                    matkul.nilai_angka = '';
+                                    matkul.nilai_angka = null;
                                     matkul.nilai_huruf = '';
                                     return matkul;
                                 });
 
+                                // Set semuaMatkul
                                 this.semuaMatkul = matkul;
                             });
                     },
 
-                    getNilaiHuruf(matkul) {
+                    getNilaiHuruf(matkul, id_loader) {
+                        const loader_id = this.$id('nilai-matkul', 'loader')
+                        const loader = document.getElementById(loader_id);
+
+                        // Tampilkan loader / spinner
+                        loader.classList.remove('d-none');
+                        matkul.nilai_huruf = '';
+
                         // Jika nilai angkanya kosong
                         if (!matkul.nilai_angka) {
-                            matkul.nilai_huruf = '';
+                            // Sembunyikan loader / spinner
+                            loader.classList.add('d-none');
                             return;
                         }
 
@@ -293,7 +305,19 @@
                         fetch(url)
                             .then(response => response.json())
                             .then(data => {
-                                matkul.nilai_huruf = data.nilai_huruf;
+                                // Cast nilai_angka ke Number untuk menghilangkan angka 0 di depan
+                                matkul.nilai_angka = Number(matkul.nilai_angka);
+
+                                // Set Nilai Huruf
+                                matkul.nilai_huruf = data.nilai_huruf || 'Nilai tidak valid';
+                                this.canSubmit = true;
+
+                                // Klo nilai huruf nya null, maka jangan boleh submit
+                                if (!data.nilai_huruf) this.canSubmit = false;
+                            })
+                            .finally(() => {
+                                // Sembunyikan loader / spinner
+                                loader.classList.add('d-none');
                             });
                     },
                 };
