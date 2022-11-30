@@ -5,6 +5,7 @@ namespace App;
 use App\Traits\HasModelExtender;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent;
+use Illuminate\Support\Facades\DB;
 
 class ApresiasiMhs extends Model
 {
@@ -65,16 +66,16 @@ class ApresiasiMhs extends Model
             END;
         SQL;
 
-        // $stmt = DB::getPdo()->prepare($sql);
-        // $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
-        // $stmt->bindValue('smt', $this->smt);
-        // $stmt->bindValue('nim', $this->nim);
-        // $stmt->bindValue('jenis_kegiatan', $this->jenis_kegiatan);
-        // $stmt->bindValue('prestasi_kegiatan', $this->prestasi_kegiatan);
-        // $stmt->bindValue('tingkat_kegiatan', $this->tingkat_kegiatan);
-        // $stmt->bindValue('keterangan', $this->keterangan);
-        // $stmt->bindValue('bukti_kegiatan', $this->bukti_kegiatan);
-        // $stmt->execute();
+        $stmt = DB::getPdo()->prepare($sql);
+        $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
+        $stmt->bindValue('smt', $this->smt);
+        $stmt->bindValue('nim', $this->nim);
+        $stmt->bindValue('jenis_kegiatan', $this->jenis_kegiatan);
+        $stmt->bindValue('prestasi_kegiatan', $this->prestasi_kegiatan);
+        $stmt->bindValue('tingkat_kegiatan', $this->tingkat_kegiatan);
+        $stmt->bindValue('keterangan', $this->keterangan);
+        $stmt->bindValue('bukti_kegiatan', $this->bukti_kegiatan);
+        $stmt->execute();
 
         // We will go ahead and set the exists property to true, so that it is set when
         // the created event is fired, just in case the developer tries to update it

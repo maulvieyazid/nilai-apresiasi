@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\ApresiasiDetil;
+use App\ApresiasiMhs;
 use App\Mahasiswa;
 use App\TrklklMf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class NilaiApresiasiController extends Controller
 {
@@ -28,7 +31,35 @@ class NilaiApresiasiController extends Controller
             'bukti_kegiatan.max' => 'Ukuran maksimal bukti kegiatan yang diijinkan adalah 10 MB',
         ]);
 
-        dd($request->all());
+
+        $bukti_kegiatan = $request->file('bukti_kegiatan');
+        $filename = null;
+
+        if ($request->hasFile('bukti_kegiatan')) {
+            $filename = $bukti_kegiatan->getClientOriginalName();
+
+            Storage::disk('bukti')->putFileAs(null, $bukti_kegiatan, $filename);
+        }
+
+        $apresiasiMhs = ApresiasiMhs::create([
+            'smt'               => $request->smt,
+            'nim'               => $request->nim,
+            'jenis_kegiatan'    => $request->jenis_kegiatan,
+            'prestasi_kegiatan' => $request->prestasi_kegiatan,
+            'tingkat_kegiatan'  => $request->tingkat_kegiatan,
+            'keterangan'        => $request->keterangan,
+            'bukti_kegiatan'    => $filename,
+        ]);
+
+        foreach ($request->nilai_matkul as $nilai_matkul) {
+            ApresiasiDetil::create([
+                'id_apresiasi' => $apresiasiMhs->id_apresiasi,
+                'klkl_id'      => $nilai_matkul['klkl_id'],
+                'nilai'        => $nilai_matkul['nilai_angka'],
+            ]);
+        }
+
+        return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
     }
 
 
