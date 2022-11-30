@@ -48,14 +48,14 @@
                                     <div class="col-2">
                                         <div class="form-group">
                                             <label for="smt">Semester</label>
-                                            <input type="text" id="smt" class="form-control" placeholder="Semester" name="smt" required x-ref="smt" @input.debounce.350="getMatkulMhs()">
+                                            <input type="text" id="smt" class="form-control" placeholder="Semester" name="smt" required x-ref="smt" @input.debounce="getMatkulMhs()">
                                         </div>
                                     </div>
                                     <!-- NIM -->
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label for="nim">NIM</label>
-                                            <input type="text" id="nim" class="form-control" placeholder="NIM" name="nim" x-mask="99999999999" required x-ref="nim" @input.debounce.350="getNamaMhs()">
+                                            <input type="text" id="nim" class="form-control" placeholder="NIM" name="nim" x-mask="99999999999" required x-ref="nim" @input.debounce="getNamaMhs()">
                                         </div>
                                     </div>
                                     <!-- Nama -->
@@ -117,6 +117,7 @@
                                                     <th class="text-center">Nama</th>
                                                     <th class="text-center">SKS</th>
                                                     <th class="text-center">Nilai</th>
+                                                    <th class="text-center">Nilai Huruf</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -136,8 +137,11 @@
                                                             <span x-text="matkul.kurikulum.sks"></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <input type="number" step="any" class="form-control" :id="$id('nilai-matkul')" placeholder="Nilai" :value="matkul.nilai" x-bind:disabled="!matkul.centang"
-                                                                :name="`nilai_matkul[${matkul.klkl_id}]`">
+                                                            <input type="number" step="any" class="form-control" :id="$id('nilai-matkul')" placeholder="Nilai" x-model="matkul.nilai_angka" x-bind:disabled="!matkul.centang"
+                                                                :name="`nilai_matkul['${matkul.klkl_id}*^*']`" @input.debounce="getNilaiHuruf(matkul)">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span x-text="matkul.nilai_huruf"></span>
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -264,14 +268,32 @@
                                     return;
                                 }
 
-                                // Menambahkan default attribut centang dan nilai
+                                // Menambahkan default attribut centang, nilai_angka, nilai_huruf
                                 const matkul = data.matkul.map(matkul => {
                                     matkul.centang = false;
-                                    matkul.nilai = '';
+                                    matkul.nilai_angka = '';
+                                    matkul.nilai_huruf = '';
                                     return matkul;
                                 });
 
                                 this.semuaMatkul = matkul;
+                            });
+                    },
+
+                    getNilaiHuruf(matkul) {
+                        // Jika nilai angkanya kosong
+                        if (!matkul.nilai_angka) {
+                            matkul.nilai_huruf = '';
+                            return;
+                        }
+
+                        let url = "{{ route('nilaiapresiasi.json.get.nilai_huruf', ['nilai_angka' => ':nilai_angka']) }}";
+                        url = url.replace(':nilai_angka', matkul.nilai_angka);
+
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => {
+                                matkul.nilai_huruf = data.nilai_huruf;
                             });
                     },
                 };

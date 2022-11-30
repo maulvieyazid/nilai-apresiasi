@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mahasiswa;
 use App\TrklklMf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class NilaiApresiasiController extends Controller
 {
@@ -50,10 +51,20 @@ class NilaiApresiasiController extends Controller
                 'klkl_id',
                 'mhs_nim',
                 'semester',
+                'sts_mk',
             ]);
 
         return response()->json([
             'matkul' => $matkul->count() ? $matkul : null,
+        ]);
+    }
+
+    public function jsonGetNilaiHuruf($nilai_angka)
+    {
+        $nilai_huruf = DB::select("select nilai_huruf(?) AS nilai_huruf from dual", [$nilai_angka])[0]->nilai_huruf;
+
+        return response()->json([
+            'nilai_huruf' => $nilai_huruf
         ]);
     }
 }

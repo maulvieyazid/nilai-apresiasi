@@ -51,3 +51,4 @@ Route::post('/store', 'NilaiApresiasiController@store')->name('nilaiapresiasi.st
 
 Route::get('/json/nama/mhs/{nim}', 'NilaiApresiasiController@jsonGetNamaMhs')->name('nilaiapresiasi.json.get.nama_mhs');
 Route::get('/json/matkul/mhs/{nim}/{smt}', 'NilaiApresiasiController@jsonGetMatkulMhs')->name('nilaiapresiasi.json.get.matkul_mhs');
+Route::get('/json/nilai_huruf/{nilai_angka}', 'NilaiApresiasiController@jsonGetNilaiHuruf')->name('nilaiapresiasi.json.get.nilai_huruf');
