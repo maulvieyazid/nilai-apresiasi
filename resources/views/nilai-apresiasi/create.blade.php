@@ -190,26 +190,7 @@
                 return {
                     matkulNotExistText: '',
                     canSubmit: true,
-                    semuaMatkul: [
-                        // {
-                        //     centang: false,
-                        //     kode: '123456',
-                        //     nama: 'Pemrograman Web',
-                        //     nilai: '',
-                        // },
-                        // {
-                        //     centang: false,
-                        //     kode: '456789',
-                        //     nama: 'Pemrograman Basis Data',
-                        //     nilai: '',
-                        // },
-                        // {
-                        //     centang: false,
-                        //     kode: '101112',
-                        //     nama: 'Pemrograman Komputer',
-                        //     nilai: '',
-                        // },
-                    ],
+                    semuaMatkul: [],
 
                     getNamaMhs() {
                         this.canSubmit = true;
