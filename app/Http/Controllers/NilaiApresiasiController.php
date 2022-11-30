@@ -14,7 +14,9 @@ class NilaiApresiasiController extends Controller
 {
     public function index()
     {
-        return view('nilai-apresiasi.index');
+        $semuaApresiasiMhs = ApresiasiMhs::orderBy('id_apresiasi', 'desc')->get();
+
+        return view('nilai-apresiasi.index', compact('semuaApresiasiMhs'));
     }
 
     public function create()
