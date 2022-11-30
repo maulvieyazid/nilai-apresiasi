@@ -40,7 +40,8 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form class="form" method="POST" action="{{ route('nilaiapresiasi.store') }}">
+                            <!-- Jika canSubmit bernilai true maka lakukan submit, jika false, maka cegah submit -->
+                            <form class="form" method="POST" action="{{ route('nilaiapresiasi.store') }}" @submit.prevent="canSubmit && $el.submit()">
                                 @csrf
                                 <div class="row">
                                     <!-- Semester -->
@@ -95,7 +96,7 @@
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label for="bukti_kegiatan" class="form-label">Bukti Kegiatan</label>
-                                            <input class="form-control" type="file" id="bukti_kegiatan" name="bukti_kegiatan" required>
+                                            <input class="form-control" type="file" id="bukti_kegiatan" name="bukti_kegiatan">
                                         </div>
                                     </div>
                                     <!-- Tabel Pemilihan Matakuliah yang akan dikonversi -->
@@ -135,7 +136,7 @@
                                         </table>
                                     </div>
                                     <div class="col-12 d-flex justify-content-end">
-                                        <button type="submit" class="btn icon icon-left btn-primary me-1 mb-1 text-white">
+                                        <button type="submit" class="btn icon icon-left btn-primary me-1 mb-1 text-white" :class="canSubmit ? '' : 'disabled'">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16">
                                                 <path
                                                     d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z" />
@@ -162,6 +163,7 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('create_nilai_apresiasi', () => {
                 return {
+                    canSubmit: true,
                     semuaMatkul: [{
                             centang: false,
                             kode: '123456',
@@ -183,6 +185,9 @@
                     ],
 
                     getNamaMhs() {
+                        this.canSubmit = true;
+                        this.$refs.nama.classList.remove('is-invalid');
+
                         const nim = this.$refs.nim.value;
 
                         let url = "{{ route('nilaiapresiasi.json.get.nama_mhs', ['nim' => ':nim']) }}";
@@ -192,6 +197,13 @@
                             .then(response => response.json())
                             .then(data => {
                                 this.$refs.nama.value = data.nama || 'Mahasiswa tidak ditemukan';
+
+                                // Jika mahasiswa tidak ditemukan
+                                if (!data.nama) {
+                                    this.$refs.nama.classList.add('is-invalid');
+
+                                    this.canSubmit = false
+                                }
                             });
                     },
                 };
