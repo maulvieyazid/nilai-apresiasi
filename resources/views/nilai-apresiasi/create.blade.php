@@ -48,14 +48,14 @@
                                     <div class="col-2">
                                         <div class="form-group">
                                             <label for="smt">Semester</label>
-                                            <input type="text" id="smt" class="form-control" placeholder="Semester" name="smt" required>
+                                            <input type="text" id="smt" class="form-control" placeholder="Semester" name="smt" required x-ref="smt" @input.debounce.350="getMatkulMhs()">
                                         </div>
                                     </div>
                                     <!-- NIM -->
                                     <div class="col-4">
                                         <div class="form-group">
                                             <label for="nim">NIM</label>
-                                            <input type="text" id="nim" class="form-control" placeholder="NIM" name="nim" x-mask="99999999999" required x-ref="nim" @change="getNamaMhs()">
+                                            <input type="text" id="nim" class="form-control" placeholder="NIM" name="nim" x-mask="99999999999" required x-ref="nim" @input.debounce.350="getNamaMhs()">
                                         </div>
                                     </div>
                                     <!-- Nama -->
@@ -86,6 +86,7 @@
                                             <input type="text" id="tingkat_kegiatan" class="form-control" name="tingkat_kegiatan" placeholder="contoh: Nasional / Regional / Internasional" required>
                                         </div>
                                     </div>
+                                    <!-- Keterangan -->
                                     <div class="col-6">
                                         <div class="form-group">
                                             <label for="keterangan">Keterangan (Opsional)</label>
@@ -110,6 +111,7 @@
                                                 <tr>
                                                     <th class="text-center">Kode</th>
                                                     <th class="text-center">Nama</th>
+                                                    <th class="text-center">SKS</th>
                                                     <th class="text-center">Nilai</th>
                                                 </tr>
                                             </thead>
@@ -121,14 +123,26 @@
                                                             <input type="checkbox" id="checkbox1" class="form-check-input" x-model="matkul.centang" @change="if ($el.checked) document.getElementById($id('nilai-matkul')).focus()">
                                                         </td>
                                                         <td class="text-center">
-                                                            <span x-text="matkul.kode"></span>
+                                                            <span x-text="matkul.klkl_id"></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <span x-text="matkul.nama"></span>
+                                                            <span x-text="matkul.kurikulum.nama"></span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span x-text="matkul.kurikulum.sks"></span>
                                                         </td>
                                                         <td class="text-center">
                                                             <input type="number" step="any" class="form-control" :id="$id('nilai-matkul')" placeholder="Nilai" :value="matkul.nilai" x-bind:disabled="!matkul.centang"
                                                                 :name="`nilai_matkul[${matkul.kode}]`">
+                                                        </td>
+                                                    </tr>
+                                                </template>
+
+                                                <!-- Kalo semuaMatkul kosong -->
+                                                <template x-if="!semuaMatkul.length">
+                                                    <tr>
+                                                        <td colspan="100%" class="text-center">
+                                                            <span class="fw-bold" x-text="matkulNotExistText"></span>
                                                         </td>
                                                     </tr>
                                                 </template>
@@ -145,13 +159,12 @@
                                         </button>
                                     </div>
                                 </div>
+                            </form>
                         </div>
-                        </form>
                     </div>
                 </div>
+            </section>
         </div>
-        </section>
-    </div>
     </div>
 @endsection
 
@@ -163,29 +176,32 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('create_nilai_apresiasi', () => {
                 return {
+                    matkulNotExistText: '',
                     canSubmit: true,
-                    semuaMatkul: [{
-                            centang: false,
-                            kode: '123456',
-                            nama: 'Pemrograman Web',
-                            nilai: '',
-                        },
-                        {
-                            centang: false,
-                            kode: '456789',
-                            nama: 'Pemrograman Basis Data',
-                            nilai: '',
-                        },
-                        {
-                            centang: false,
-                            kode: '101112',
-                            nama: 'Pemrograman Komputer',
-                            nilai: '',
-                        },
+                    semuaMatkul: [
+                        // {
+                        //     centang: false,
+                        //     kode: '123456',
+                        //     nama: 'Pemrograman Web',
+                        //     nilai: '',
+                        // },
+                        // {
+                        //     centang: false,
+                        //     kode: '456789',
+                        //     nama: 'Pemrograman Basis Data',
+                        //     nilai: '',
+                        // },
+                        // {
+                        //     centang: false,
+                        //     kode: '101112',
+                        //     nama: 'Pemrograman Komputer',
+                        //     nilai: '',
+                        // },
                     ],
 
                     getNamaMhs() {
                         this.canSubmit = true;
+                        // Hilangkan validasi error pada inputan nama
                         this.$refs.nama.classList.remove('is-invalid');
 
                         const nim = this.$refs.nim.value;
@@ -197,13 +213,60 @@
                             .then(response => response.json())
                             .then(data => {
                                 this.$refs.nama.value = data.nama || 'Mahasiswa tidak ditemukan';
+                                this.semuaMatkul = [];
 
                                 // Jika mahasiswa tidak ditemukan
                                 if (!data.nama) {
+                                    this.matkulNotExistText = '';
+                                    // Tampilkan validasi error pada inputan nama
                                     this.$refs.nama.classList.add('is-invalid');
-
                                     this.canSubmit = false
+                                    return;
                                 }
+
+                                this.getMatkulMhs();
+                            });
+                    },
+
+                    getMatkulMhs() {
+                        this.matkulNotExistText = '';
+                        this.semuaMatkul = [];
+
+                        // Klo semester belum diisi
+                        if (!this.$refs.smt.value) {
+                            this.matkulNotExistText = 'Mohon isi semester';
+                            return;
+                        }
+
+                        // Klo nim belum diisi
+                        if (!this.$refs.nim.value) {
+                            this.matkulNotExistText = 'Mohon isi NIM';
+                            return;
+                        }
+
+                        const smt = this.$refs.smt.value;
+                        const nim = this.$refs.nim.value;
+
+                        let url = "{{ route('nilaiapresiasi.json.get.matkul_mhs', ['nim' => ':nim', 'smt' => ':smt']) }}";
+                        url = url.replace(':nim', nim).replace(':smt', smt);
+
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Klo data matkul nya null, maka return
+                                if (!data.matkul) {
+                                    this.matkulNotExistText = `Data Matakuliah Semester ${smt} dengan NIM ${nim} tidak ada`;
+                                    return;
+                                }
+
+                                // Menambahkan default attribut centang dan nilai
+                                const matkul = data.matkul.map(matkul => {
+                                    matkul.centang = false;
+                                    matkul.nilai = '';
+                                    return matkul;
+                                });
+
+                                this.semuaMatkul = matkul;
                             });
                     },
                 };
