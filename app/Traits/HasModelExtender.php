@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Database\Eloquent;
+use Illuminate\Support\Str;
 
 trait HasModelExtender
 {
@@ -12,7 +13,12 @@ trait HasModelExtender
     {
         parent::__construct($attributes);
 
-        $this->skema = config('oracle.oracle.prefix_schema') == '' ? '' : config('oracle.oracle.prefix_schema') . ".";
+        $this->skema = config('oracle.custom.procedure_schema') == '' ? '' : Str::finish(config('oracle.custom.procedure_schema'), '.');
+    }
+
+    public function getSkema()
+    {
+        return $this->skema;
     }
 
     // Function ini digunakan untuk mendapatkan sekaligus mengeset primary key selanjutnya pada model

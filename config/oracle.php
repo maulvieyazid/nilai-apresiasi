@@ -15,4 +15,8 @@ return [
         'edition'        => env('DB_EDITION', 'ora$base'),
         'server_version' => env('DB_SERVER_VERSION', '11g'),
     ],
+
+    'custom' => [
+        'procedure_schema' => env('DB_PROCEDURE_SCHEMA', ''),
+    ],
 ];
