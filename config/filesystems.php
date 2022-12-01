@@ -68,7 +68,7 @@ return [
         'bukti' => [
             'driver' => 'local',
             'root'   => public_path('upload/bukti'),
-            'url'    => url('upload/bukti'),
+            'url' => env('APP_URL') . '/upload/bukti',
         ],
 
     ],
