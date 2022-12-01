@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\ApresiasiDetil;
 use App\ApresiasiMhs;
+use App\KrsTf;
 use App\Mahasiswa;
 use App\TrklklMf;
 use Illuminate\Http\Request;
@@ -26,6 +27,9 @@ class NilaiApresiasiController extends Controller
 
     public function store(Request $request)
     {
+        // NOTE: kenapa hanya bukti kegiatan yg divalidasi?
+        // Karena itu berbentuk file, sehingga penanganan nya perlu sedikit extra
+        // ketimbang data primitif lainnya, seperti string, int, array, dll.
         $request->validate([
             'bukti_kegiatan' => 'nullable|file|mimes:png,jpeg,pdf,doc,docx,xls,xlsx|max:12582912',
         ], [
@@ -43,6 +47,7 @@ class NilaiApresiasiController extends Controller
             Storage::disk('bukti')->putFileAs(null, $bukti_kegiatan, $filename);
         }
 
+        // Insert Apresiasi Mhs
         $apresiasiMhs = ApresiasiMhs::create([
             'smt'               => $request->smt,
             'nim'               => $request->nim,
@@ -53,13 +58,24 @@ class NilaiApresiasiController extends Controller
             'bukti_kegiatan'    => $filename,
         ]);
 
+        // Insert Apresiasi Detil berdasarkan id_apresiasi dari Apresiasi Mhs
         foreach ($request->nilai_matkul as $nilai_matkul) {
             ApresiasiDetil::create([
                 'id_apresiasi' => $apresiasiMhs->id_apresiasi,
                 'klkl_id'      => $nilai_matkul['klkl_id'],
                 'nilai'        => $nilai_matkul['nilai_angka'],
             ]);
+
+            // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak memiliki fillable, jadi untuk insert perhatikan kolom2 yang perlu diinsert
+            // di method performInsert
+
+            // Insert KRS_TF
+
+            // Insert JDWKUL
         }
+
+
+
 
         return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
     }
