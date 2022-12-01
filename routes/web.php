@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', 'NilaiApresiasiController@index')->name('nilaiapresiasi.index');
 Route::get('/create', 'NilaiApresiasiController@create')->name('nilaiapresiasi.create');
 Route::post('/store', 'NilaiApresiasiController@store')->name('nilaiapresiasi.store');
+Route::delete('/destroy/{apresiasiMhs}', 'NilaiApresiasiController@destroy')->name('nilaiapresiasi.destroy');
 
 Route::get('/json/nama/mhs/{nim}', 'NilaiApresiasiController@jsonGetNamaMhs')->name('nilaiapresiasi.json.get.nama_mhs');
 Route::get('/json/matkul/mhs/{nim}/{smt}', 'NilaiApresiasiController@jsonGetMatkulMhs')->name('nilaiapresiasi.json.get.matkul_mhs');

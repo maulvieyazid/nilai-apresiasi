@@ -71,4 +71,30 @@ class ApresiasiDetil extends Model
 
         return true;
     }
+
+
+    /**
+     * Perform the actual delete query on this model instance.
+     *
+     * @return void
+     */
+    protected function performDeleteOnModel()
+    {
+        $sql = <<<SQL
+            BEGIN
+                {$this->skema}DEL_APRESIASI_DETIL (
+                    :id_apresiasi,
+                    :klkl_id
+                );
+
+            END;
+        SQL;
+
+        $stmt = DB::getPdo()->prepare($sql);
+        $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
+        $stmt->bindValue('klkl_id', $this->klkl_id);
+        $stmt->execute();
+
+        $this->exists = false;
+    }
 }

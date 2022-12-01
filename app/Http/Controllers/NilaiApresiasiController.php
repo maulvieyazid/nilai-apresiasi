@@ -64,6 +64,25 @@ class NilaiApresiasiController extends Controller
         return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
     }
 
+    public function destroy(ApresiasiMhs $apresiasiMhs)
+    {
+        // Ambil semua Apresiasi Detil
+        $apresiasiMhs = $apresiasiMhs->load('detil');
+
+        // Hapus Apresiasi Detil
+        $apresiasiMhs->detil->each(function ($apresiasiDetil) {
+            $apresiasiDetil->delete();
+        });
+
+        // Hapus bukti kegiatan (klo ada)
+        if ($apresiasiMhs->bukti_kegiatan) Storage::disk('bukti')->delete($apresiasiMhs->bukti_kegiatan);
+
+        // Hapus Apresiasi Mhs
+        $apresiasiMhs->delete();
+
+        return back()->with('success', 'Nilai Apresiasi berhasil dihapus.');
+    }
+
 
     public function jsonGetNamaMhs($nim)
     {

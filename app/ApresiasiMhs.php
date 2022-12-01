@@ -88,4 +88,28 @@ class ApresiasiMhs extends Model
 
         return true;
     }
+
+
+    /**
+     * Perform the actual delete query on this model instance.
+     *
+     * @return void
+     */
+    protected function performDeleteOnModel()
+    {
+        $sql = <<<SQL
+            BEGIN
+                {$this->skema}DEL_APRESIASI_MHS (
+                    :id_apresiasi
+                );
+
+            END;
+        SQL;
+
+        $stmt = DB::getPdo()->prepare($sql);
+        $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
+        $stmt->execute();
+
+        $this->exists = false;
+    }
 }
