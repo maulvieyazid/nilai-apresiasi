@@ -5,6 +5,7 @@ namespace App;
 use App\Traits\HasModelExtender;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent;
+use Illuminate\Support\Facades\DB;
 
 // Karena Model KrsTf ini bukan untuk dibaca datanya, melainkan hanya insert dan delete
 // Maka tidak disertakan data2 attribut yang lengkap
@@ -13,6 +14,10 @@ class KrsTf extends Model
     use HasModelExtender;
 
     const DEFAULT_JKUL_KELAS = 'PR';
+
+    public $incrementing = false;
+
+    public $timestamps = false;
 
     protected $guarded = [];
 
@@ -92,8 +97,8 @@ class KrsTf extends Model
         $stmt->bindValue('jkul_klkl_id', $this->jkul_klkl_id);
         $stmt->bindValue('mhs_nim', $this->mhs_nim);
         $stmt->bindValue('nilai_akhir', 0);
-        $stmt->bindValue('nilai_huruf', '');
-        $stmt->bindValue('sts_mk', '');
+        $stmt->bindValue('nilai_huruf', null);
+        $stmt->bindValue('sts_mk', null);
         $stmt->execute();
 
         $this->exists = false;

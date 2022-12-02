@@ -5,6 +5,7 @@ namespace App;
 use App\Traits\HasModelExtender;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent;
+use Illuminate\Support\Facades\DB;
 
 // Karena Model KrsTf ini bukan untuk dibaca datanya, melainkan hanya insert dan delete
 // Maka tidak disertakan data2 attribut yang lengkap
@@ -12,7 +13,9 @@ class Jdwkul extends Model
 {
     use HasModelExtender;
 
-    const DEFAULT_KELAS = 'PA';
+    public $incrementing = false;
+
+    public $timestamps = false;
 
     protected $guarded = [];
 
@@ -35,7 +38,8 @@ class Jdwkul extends Model
                 {$this->skema}INS_APRESIASI_JDWKUL (
                     :mhs_nim,
                     :klkl_id,
-                    :sks
+                    :sks,
+                    :kelas
                 );
 
             END;
@@ -45,6 +49,7 @@ class Jdwkul extends Model
         $stmt->bindValue('mhs_nim', $this->mhs_nim);
         $stmt->bindValue('klkl_id', $this->klkl_id);
         $stmt->bindValue('sks', $this->sks);
+        $stmt->bindValue('kelas', KrsTf::DEFAULT_JKUL_KELAS);
         $stmt->execute();
 
         // We will go ahead and set the exists property to true, so that it is set when
@@ -80,7 +85,7 @@ class Jdwkul extends Model
 
         $stmt = DB::getPdo()->prepare($sql);
         $stmt->bindValue('klkl_id', $this->klkl_id);
-        $stmt->bindValue('kelas', self::DEFAULT_KELAS);
+        $stmt->bindValue('kelas', KrsTf::DEFAULT_JKUL_KELAS);
         $stmt->bindValue('prodi', $this->prodi);
         $stmt->execute();
 

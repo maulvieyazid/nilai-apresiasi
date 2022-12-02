@@ -125,9 +125,11 @@
                                                     <tr :class="!matkul.centang ? 'table-secondary' : ''" x-id="['matkul-konversi']">
 
                                                         <!-- Input type hidden ini untuk menyertakan data tambahan di array nilai_matkul -->
+                                                        <!-- x-bind disabled digunakan untuk mendisable input hidden agar tidak ikut tersubmit, saat barisnya tidak dicentang -->
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][klkl_id]`" :value="matkul.klkl_id" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][nilai_huruf]`" :value="matkul.nilai_huruf" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_mk]`" :value="matkul.sts_mk" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sks]`" :value="matkul.kurikulum.sks" x-bind:disabled="!matkul.centang">
 
                                                         <td class="text-center">
                                                             <!-- Jika dicentang, maka langsung focus ke inputan nilai -->

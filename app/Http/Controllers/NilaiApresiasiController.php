@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\ApresiasiDetil;
 use App\ApresiasiMhs;
+use App\Jdwkul;
 use App\KrsTf;
 use App\Mahasiswa;
 use App\TrklklMf;
@@ -41,6 +42,8 @@ class NilaiApresiasiController extends Controller
         $bukti_kegiatan = $request->file('bukti_kegiatan');
         $filename = null;
 
+        // Kalo ada bukti kegiatannya, maka simpan file nya ke disk bukti
+        // untuk mengecek konfigurasi disk, buka config/filesystems.php
         if ($request->hasFile('bukti_kegiatan')) {
             $filename = $bukti_kegiatan->getClientOriginalName();
 
@@ -66,16 +69,25 @@ class NilaiApresiasiController extends Controller
                 'nilai'        => $nilai_matkul['nilai_angka'],
             ]);
 
-            // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak memiliki fillable, jadi untuk insert perhatikan kolom2 yang perlu diinsert
+            // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
             // di method performInsert
 
             // Insert KRS_TF
+            KrsTf::create([
+                'jkul_klkl_id' => $nilai_matkul['klkl_id'],
+                'mhs_nim'      => $request->nim,
+                'nilai_akhir'  => $nilai_matkul['nilai_angka'], // <- Hati2, key dan value nya berbeda, key nya 'nilai_akhir', sedangkan value nya 'nilai_angka'
+                'nilai_huruf'  => $nilai_matkul['nilai_huruf'],
+                'sts_mk'       => $nilai_matkul['sts_mk'],
+            ]);
 
             // Insert JDWKUL
+            Jdwkul::create([
+                'mhs_nim' => $request->nim,
+                'klkl_id' => $nilai_matkul['klkl_id'],
+                'sks'     => $nilai_matkul['sks'],
+            ]);
         }
-
-
-
 
         return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
     }
@@ -85,8 +97,47 @@ class NilaiApresiasiController extends Controller
         // Ambil semua Apresiasi Detil
         $apresiasiMhs = $apresiasiMhs->load('detil');
 
-        // Hapus Apresiasi Detil
-        $apresiasiMhs->detil->each(function ($apresiasiDetil) {
+        // Looping apresiasi detil
+        $apresiasiMhs->detil->each(function ($apresiasiDetil) use ($apresiasiMhs) {
+
+            // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak dimaksudkan untuk dibaca data nya (hanya insert dan delete saja)
+            // jadi untuk delete tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
+            // melainkan langsung isikan attribute nya ke instance nya
+
+            // Isi attribute KRS_TF
+            $krstf = new KrsTf([
+                'jkul_klkl_id' => $apresiasiDetil->klkl_id,
+                'mhs_nim'      => $apresiasiMhs->nim,
+            ]);
+
+            // NOTE: bila instance model tidak didapatkan dari DB, maka attribute "exists" akan bernilai false,
+            // Sedangkan di method delete(), bila "exists" ini bernilai false, maka dia akan langsung return,
+            // dan tidak akan menjalankan method performDeleteOnModel(), maka dari itu attribute ini perlu di set ke true
+            $krstf->exists = true;
+
+            // Hapus KRS_TF
+            $krstf->delete();
+
+            // Isi attribute Jdwkul
+            $jdwkul = new Jdwkul([
+                'klkl_id' => $apresiasiDetil->klkl_id,
+                'prodi'   => substr($apresiasiMhs->nim, 2, 5),
+            ]);
+
+            $jdwkul->exists = true;
+
+            // Untuk Jdwkul, sebelum menghapus, perlu dicek dulu,
+            // apakah ada apresiasi detil lain yang klkl_id nya sama tetapi bukan apresiasi detil yang sedang di looping saat ini?
+            // Kalo ada, maka jangan hapus Jdwkul, Kalo enggak ada, maka hapus Jdwkul
+            $hasSameKlklid = ApresiasiDetil::query()
+                ->where('klkl_id', $apresiasiDetil->klkl_id)
+                ->where('id_apresiasi', '!=', $apresiasiDetil->id_apresiasi)
+                ->count();
+
+            // Hapus Jdwkul
+            if (!$hasSameKlklid) $jdwkul->delete();
+
+            // Hapus Apresiasi Detil
             $apresiasiDetil->delete();
         });
 
