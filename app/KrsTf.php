@@ -7,19 +7,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\DB;
 
-// Karena Model KrsTf ini bukan untuk dibaca datanya, melainkan hanya insert dan delete
-// Maka tidak disertakan data2 attribut yang lengkap
+
 class KrsTf extends Model
 {
     use HasModelExtender;
 
     const DEFAULT_JKUL_KELAS = 'PR';
 
+    protected $table = 'AAK_MAN.KRS_TF';
+
     public $incrementing = false;
 
     public $timestamps = false;
 
     protected $guarded = [];
+
+    public function kurikulum()
+    {
+        return $this->belongsTo(Kurikulum::class, 'jkul_klkl_id', 'id');
+    }
 
 
 

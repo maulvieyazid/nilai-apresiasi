@@ -35,6 +35,11 @@ class ApresiasiMhs extends Model
         return $this->hasMany(ApresiasiDetil::class, 'id_apresiasi', 'id_apresiasi');
     }
 
+    public function mhs()
+    {
+        return $this->belongsTo(Mahasiswa::class, 'nim', 'nim')->addSelect(['nim', 'nama']);
+    }
+
 
     /**
      * Perform a model insert operation.
@@ -85,6 +90,53 @@ class ApresiasiMhs extends Model
         $this->wasRecentlyCreated = true;
 
         $this->fireModelEvent('created', false);
+
+        return true;
+    }
+
+
+    /**
+     * Perform a model update operation.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return bool
+     */
+    protected function performUpdate(Eloquent\Builder $query)
+    {
+        // If the updating event returns false, we will cancel the update operation so
+        // developers can hook Validation systems into their models and cancel this
+        // operation if the model does not pass validation. Otherwise, we update.
+        if ($this->fireModelEvent('updating') === false) {
+            return false;
+        }
+
+        $sql = <<<SQL
+            BEGIN
+                {$this->skema}UPD_APRESIASI_MHS (
+                    :id_apresiasi,
+                    :smt,
+                    :nim,
+                    :jenis_kegiatan,
+                    :prestasi_kegiatan,
+                    :tingkat_kegiatan,
+                    :keterangan,
+                    :bukti_kegiatan
+                );
+
+            END;
+        SQL;
+
+        $stmt = DB::getPdo()->prepare($sql);
+        $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
+        $stmt->bindValue('smt', $this->smt);
+        $stmt->bindValue('nim', $this->nim);
+        $stmt->bindValue('jenis_kegiatan', $this->jenis_kegiatan);
+        $stmt->bindValue('prestasi_kegiatan', $this->prestasi_kegiatan);
+        $stmt->bindValue('tingkat_kegiatan', $this->tingkat_kegiatan);
+        $stmt->bindValue('keterangan', $this->keterangan);
+        $stmt->bindValue('bukti_kegiatan', $this->bukti_kegiatan);
+        $stmt->execute();
+
 
         return true;
     }

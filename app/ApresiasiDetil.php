@@ -72,6 +72,42 @@ class ApresiasiDetil extends Model
         return true;
     }
 
+    /**
+     * Perform a model update operation.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return bool
+     */
+    protected function performUpdate(Eloquent\Builder $query)
+    {
+        // If the updating event returns false, we will cancel the update operation so
+        // developers can hook Validation systems into their models and cancel this
+        // operation if the model does not pass validation. Otherwise, we update.
+        if ($this->fireModelEvent('updating') === false) {
+            return false;
+        }
+
+        $sql = <<<SQL
+            BEGIN
+                {$this->skema}UPD_APRESIASI_DETIL (
+                    :id_apresiasi,
+                    :klkl_id,
+                    :nilai
+                );
+
+            END;
+        SQL;
+
+        $stmt = DB::getPdo()->prepare($sql);
+        $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
+        $stmt->bindValue('klkl_id', $this->klkl_id);
+        $stmt->bindValue('nilai', $this->nilai);
+        $stmt->execute();
+
+
+        return true;
+    }
+
 
     /**
      * Perform the actual delete query on this model instance.

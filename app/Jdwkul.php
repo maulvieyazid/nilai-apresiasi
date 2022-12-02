@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\DB;
 
-// Karena Model KrsTf ini bukan untuk dibaca datanya, melainkan hanya insert dan delete
-// Maka tidak disertakan data2 attribut yang lengkap
+
 class Jdwkul extends Model
 {
     use HasModelExtender;

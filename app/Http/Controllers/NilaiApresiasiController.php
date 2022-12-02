@@ -92,6 +92,88 @@ class NilaiApresiasiController extends Controller
         return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
     }
 
+
+    public function edit($id_apresiasi)
+    {
+        $apresiasiMhs = ApresiasiMhs::query()
+            ->with(['detil', 'mhs'])
+            ->where('id_apresiasi', $id_apresiasi)
+            ->firstOrFail();
+
+        // Karena ada data2 yang hanya tersimpan di KrsTf, jadi terpaksa mengambil data dari KrsTf
+        // Selain itu, Apresiasi Detil tidak bisa di eager loading dengan KrsTf karena memerlukan beberapa key untuk disambungkan
+        $semuaKrs = KrsTf::query()
+            ->where('jkul_kelas', KrsTf::DEFAULT_JKUL_KELAS)
+            ->whereIn('jkul_klkl_id', $apresiasiMhs->detil->pluck('klkl_id'))
+            ->where('mhs_nim', $apresiasiMhs->nim)
+            ->with(['kurikulum' => function ($kurikulum) {
+                $kurikulum->addSelect(['id', 'nama', 'sks']);
+            }])
+            ->get();
+
+        return view('nilai-apresiasi.edit', compact('apresiasiMhs', 'semuaKrs'));
+    }
+
+    public function update(Request $request, ApresiasiMhs $apresiasiMhs)
+    {
+        $bukti_kegiatan = $request->file('bukti_kegiatan');
+        $filename = $apresiasiMhs->bukti_kegiatan;
+
+        // Kalo ada bukti kegiatannya, maka hapus bukti yang sebelumnya lalu simpan bukti yg baru
+        if ($request->hasFile('bukti_kegiatan')) {
+            $filename = $bukti_kegiatan->getClientOriginalName();
+
+            Storage::disk('bukti')->delete($apresiasiMhs->bukti_kegiatan);
+
+            Storage::disk('bukti')->putFileAs(null, $bukti_kegiatan, $filename);
+        }
+
+        // Update Apresiasi Mhs
+        $apresiasiMhs->update([
+            'jenis_kegiatan'    => $request->jenis_kegiatan,
+            'prestasi_kegiatan' => $request->prestasi_kegiatan,
+            'tingkat_kegiatan'  => $request->tingkat_kegiatan,
+            'keterangan'        => $request->keterangan,
+            'bukti_kegiatan'    => $filename,
+        ]);
+
+        foreach ($request->nilai_matkul as $nilai_matkul) {
+            // Update Krs Tf dengan cara hapus dulu datanya, lalu diinsert ulang
+            $krs = new KrsTf([
+                'jkul_klkl_id' => $nilai_matkul['klkl_id'],
+                'mhs_nim'      => $apresiasiMhs->nim,
+            ]);
+
+            $krs->exists = true;
+
+            // Hapus KRS_TF
+            $krs->delete();
+
+            // Buat lagi dengan value yang baru
+            KrsTf::create([
+                'jkul_klkl_id' => $nilai_matkul['klkl_id'],
+                'mhs_nim'      => $apresiasiMhs->nim,
+                'nilai_akhir'  => $nilai_matkul['nilai_angka'], // <- Hati2, key dan value nya berbeda, key nya 'nilai_akhir', sedangkan value nya 'nilai_angka'
+                'nilai_huruf'  => $nilai_matkul['nilai_huruf'],
+                'sts_mk'       => $nilai_matkul['sts_mk'],
+            ]);
+
+
+            // Update Apresiasi Detil
+            $apresiasiDetil = ApresiasiDetil::query()
+                ->where('id_apresiasi', $apresiasiMhs->id_apresiasi)
+                ->where('klkl_id', $nilai_matkul['klkl_id'])
+                ->first();
+
+            $apresiasiDetil->update([
+                'nilai' => $nilai_matkul['nilai_angka']
+            ]);
+        }
+
+        return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil diupdate.');
+    }
+
+
     public function destroy(ApresiasiMhs $apresiasiMhs)
     {
         // Ambil semua Apresiasi Detil
@@ -100,8 +182,7 @@ class NilaiApresiasiController extends Controller
         // Looping apresiasi detil
         $apresiasiMhs->detil->each(function ($apresiasiDetil) use ($apresiasiMhs) {
 
-            // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak dimaksudkan untuk dibaca data nya (hanya insert dan delete saja)
-            // jadi untuk delete tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
+            // NOTE: untuk KRS_TF dan JDWKUL, tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
             // melainkan langsung isikan attribute nya ke instance nya
 
             // Isi attribute KRS_TF
