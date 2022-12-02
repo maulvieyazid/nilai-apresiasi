@@ -12,6 +12,8 @@ class Jdwkul extends Model
 {
     use HasModelExtender;
 
+    protected $table = 'AAK_MAN.JDWKUL_MF';
+
     public $incrementing = false;
 
     public $timestamps = false;
