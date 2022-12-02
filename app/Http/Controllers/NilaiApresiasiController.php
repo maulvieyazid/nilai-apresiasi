@@ -81,12 +81,25 @@ class NilaiApresiasiController extends Controller
                 'sts_mk'       => $nilai_matkul['sts_mk'],
             ]);
 
+            $prodi = substr($request->nim, 2, 5);
+
+            // Sebelum insert jdwkul, cek dulu
+            // apakah sudah ada JDWKUL dengan kelas, klkl_id, dan prodi yg sama
+            // Klo ada, maka tidak perlu diinsert, klo gk ada, maka insert
+            $hasSameJdwkul = Jdwkul::query()
+                ->where('kelas', KrsTf::DEFAULT_JKUL_KELAS)
+                ->where('klkl_id', $nilai_matkul['klkl_id'])
+                ->where('prodi', $prodi)
+                ->count();
+
             // Insert JDWKUL
-            Jdwkul::create([
-                'mhs_nim' => $request->nim,
-                'klkl_id' => $nilai_matkul['klkl_id'],
-                'sks'     => $nilai_matkul['sks'],
-            ]);
+            if (!$hasSameJdwkul) {
+                Jdwkul::create([
+                    'mhs_nim' => $request->nim,
+                    'klkl_id' => $nilai_matkul['klkl_id'],
+                    'sks'     => $nilai_matkul['sks'],
+                ]);
+            }
         }
 
         return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
