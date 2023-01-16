@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 // Yaitu dengan menggabungkan kode rahasia dan nik user yang di hash
 // Kemudian cek hasil hash nya, jika sama, berarti user memiliki hak untuk masuk ke aplikasi
 
-// NOTE: samakan kode rahasia pada aplikasi sumber (pada SIAKAD) dengan kode rahasisa pada aplikasi ini
+// NOTE: samakan kode rahasia pada aplikasi sumber (pada SIAKAD) dengan kode rahasia pada aplikasi ini
 Route::get('login', function (Request $request) {
     $secret_code = config('custom.secret_code');
 
