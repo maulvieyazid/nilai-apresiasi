@@ -41,7 +41,7 @@
                         </div>
                         <div class="card-body">
                             <!-- Jika canSubmit bernilai true maka lakukan submit, jika false, maka cegah submit -->
-                            <form class="form" enctype="multipart/form-data" method="POST" action="{{ route('nilaiapresiasi.update', $apresiasiMhs->id_apresiasi) }}" @submit.prevent="canSubmit && $el.submit()">
+                            <form class="form" enctype="multipart/form-data" method="POST" id="formEditNilaiApresiasi" action="{{ route('nilaiapresiasi.update', $apresiasiMhs->id_apresiasi) }}" @submit.prevent="canSubmit && $el.submit()">
                                 @csrf
                                 @method('PUT')
                                 <div class="row">
@@ -119,11 +119,12 @@
                                                     <th class="text-center" colspan="100%">Matakuliah yang dikonversi</th>
                                                 </tr>
                                                 <tr>
+                                                    <th class="text-center">Kelas</th>
                                                     <th class="text-center">Kode</th>
                                                     <th class="text-center">Nama</th>
                                                     <th class="text-center">SKS</th>
                                                     <th class="text-center">Nilai</th>
-                                                    <th class="text-center">Nilai Huruf</th>
+                                                    {{-- <th class="text-center">Nilai Huruf</th> --}}
                                                 </tr>
                                             </thead>
                                             <tbody x-init="semuaKrs = {{ $semuaKrs->toJson() }}">
@@ -136,6 +137,9 @@
                                                         <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][sts_mk]`" :value="krs.sts_mk">
 
                                                         <td class="text-center">
+                                                            <span x-text="krs.jkul_kelas"></span>
+                                                        </td>
+                                                        <td class="text-center">
                                                             <span x-text="krs.jkul_klkl_id"></span>
                                                         </td>
                                                         <td class="text-center">
@@ -146,15 +150,15 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <input type="number" step="any" class="form-control" :id="$id('matkul-konversi')" placeholder="Nilai" x-model="krs.n_akhir" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_angka]`"
-                                                                @input.debounce="getNilaiHuruf(krs)">
+                                                                {{-- @input.debounce="getNilaiHuruf(krs)" --}}>
                                                         </td>
-                                                        <td class="text-center">
+                                                        {{-- <td class="text-center">
                                                             <span x-text="krs.n_huruf"></span>
 
                                                             <div class="spinner-border text-dark d-none spinner-border-sm" role="status" :id="$id('matkul-konversi', 'loader')">
                                                                 <span class="visually-hidden">Loading...</span>
                                                             </div>
-                                                        </td>
+                                                        </td> --}}
                                                     </tr>
                                                 </template>
                                             </tbody>
@@ -162,7 +166,7 @@
                                     </div>
                                     <div class="col-12 d-flex justify-content-end">
                                         <!-- submit.outside digunakan untuk mendisable button saat submit, sehingga tidak akan terjadi submit dua kali -->
-                                        <button type="submit" class="btn icon icon-left btn-primary me-1 mb-1 text-white" :class="canSubmit ? '' : 'disabled'" @submit.outside="$el.classList.add('disabled')">
+                                        <button type="button" @click="simpan()" class="btn icon icon-left btn-primary me-1 mb-1 text-white" :class="canSubmit ? '' : 'disabled'" {{-- @submit.outside="$el.classList.add('disabled')" --}}>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16">
                                                 <path
                                                     d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z" />
@@ -183,6 +187,7 @@
 @push('scripts')
     {{-- <script defer src="{{ asset('assets/vendors/alpine/alpine-mask@3.10.5.min.js') }}"></script> --}}
     <script defer src="{{ asset('assets/vendors/alpine/alpine@3.10.5.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/sweetalert2/sweetalert2.all.min.js') }}"></script>
 
     <script>
         document.addEventListener('alpine:init', () => {
@@ -226,6 +231,34 @@
                                 // Sembunyikan loader / spinner
                                 loader.classList.add('d-none');
                             });
+                    },
+
+                    async simpan() {
+                        // Cek sekaligus trigger validasi form html
+                        if (!document.querySelector('#formEditNilaiApresiasi').reportValidity()) {
+                            return;
+                        }
+
+                        // Disable btn simpan
+                        this.$el.classList.add('disabled');
+
+                        const {
+                            value
+                        } = await Swal.fire({
+                            title: `<h3>Yakin ingin mengubah Nilai Apresiasi?</h3>`,
+                            icon: 'warning',
+                            confirmButtonText: 'Iya',
+                            showCancelButton: true,
+                            cancelButtonText: 'Batal',
+                        })
+
+                        if (value) {
+                            document.querySelector('#formEditNilaiApresiasi').submit();
+                            return;
+                        }
+
+                        // Enable btn simpan
+                        this.$el.classList.remove('disabled');
                     },
                 };
             });
