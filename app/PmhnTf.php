@@ -3,42 +3,23 @@
 namespace App;
 
 use App\Traits\HasModelExtender;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-
-class KrsTf extends Model
+class PmhnTf extends Model
 {
     use HasModelExtender;
 
-    const DEFAULT_JKUL_KELAS = 'PR';
+    const DEFAULT_JNS_PMHN = '5';
 
-    // protected $table = 'AAK_MAN.KRS_TF';
-    protected $table = 'V_KRST';
+    protected $table = 'AAK_MAN.PMHN_TF';
 
     public $incrementing = false;
 
     public $timestamps = false;
 
     protected $guarded = [];
-
-    protected $appends = ['klkl_id'];
-
-
-    // ACCESSOR
-    public function getKlklIdAttribute()
-    {
-        return $this->jkul_klkl_id;
-    }
-
-
-    // RELATIONSHIP
-    public function kurikulum()
-    {
-        return $this->belongsTo(Kurikulum::class, 'jkul_klkl_id', 'id');
-    }
-
 
 
     /**
@@ -55,25 +36,23 @@ class KrsTf extends Model
 
         $sql = <<<SQL
             BEGIN
-                {$this->skema}INS_APRESIASI_KRS (
-                    :jkul_kelas,
-                    :jkul_klkl_id,
+                {$this->skema}INS_PMHN_TF (
+                    :semester,
+                    :jns_pmhn,
+                    :klkl_id,
                     :mhs_nim,
-                    :nilai_akhir,
-                    :nilai_huruf,
-                    :sts_mk
+                    TO_DATE(:tanggal, 'YYYY-MM-DD HH24:MI:SS')
                 );
 
             END;
         SQL;
 
         $stmt = DB::getPdo()->prepare($sql);
-        $stmt->bindValue('jkul_kelas', self::DEFAULT_JKUL_KELAS);
-        $stmt->bindValue('jkul_klkl_id', $this->jkul_klkl_id);
+        $stmt->bindValue('semester', $this->semester);
+        $stmt->bindValue('jns_pmhn', self::DEFAULT_JNS_PMHN);
+        $stmt->bindValue('klkl_id', $this->klkl_id);
         $stmt->bindValue('mhs_nim', $this->mhs_nim);
-        $stmt->bindValue('nilai_akhir', $this->nilai_akhir);
-        $stmt->bindValue('nilai_huruf', $this->nilai_huruf);
-        $stmt->bindValue('sts_mk', $this->sts_mk);
+        $stmt->bindValue('tanggal', $this->tanggal->format('Y-m-d H:i:s'));
         $stmt->execute();
 
         // We will go ahead and set the exists property to true, so that it is set when
@@ -88,7 +67,6 @@ class KrsTf extends Model
         return true;
     }
 
-
     /**
      * Perform the actual delete query on this model instance.
      *
@@ -98,25 +76,21 @@ class KrsTf extends Model
     {
         $sql = <<<SQL
             BEGIN
-                {$this->skema}DEL_APRESIASI_KRS (
-                    :jkul_kelas,
-                    :jkul_klkl_id,
-                    :mhs_nim,
-                    :nilai_akhir,
-                    :nilai_huruf,
-                    :sts_mk
+                {$this->skema}DEL_PMHN_TF (
+                    :semester,
+                    :jns_pmhn,
+                    :klkl_id,
+                    :mhs_nim
                 );
 
             END;
         SQL;
 
         $stmt = DB::getPdo()->prepare($sql);
-        $stmt->bindValue('jkul_kelas', self::DEFAULT_JKUL_KELAS);
-        $stmt->bindValue('jkul_klkl_id', $this->jkul_klkl_id);
+        $stmt->bindValue('semester', $this->semester);
+        $stmt->bindValue('jns_pmhn', self::DEFAULT_JNS_PMHN);
+        $stmt->bindValue('klkl_id', $this->klkl_id);
         $stmt->bindValue('mhs_nim', $this->mhs_nim);
-        $stmt->bindValue('nilai_akhir', 0);
-        $stmt->bindValue('nilai_huruf', null);
-        $stmt->bindValue('sts_mk', null);
         $stmt->execute();
 
         $this->exists = false;

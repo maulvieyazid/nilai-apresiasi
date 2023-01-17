@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\ApresiasiDetil;
 use App\ApresiasiMhs;
-use App\Jdwkul;
 use App\KrsTf;
 use App\Mahasiswa;
-use App\TrklklMf;
+use App\PmhnTf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -69,7 +68,14 @@ class NilaiApresiasiController extends Controller
                 'nilai'        => $nilai_matkul['nilai_angka'],
             ]);
 
-            // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
+            PmhnTf::create([
+                'semester' => $request->smt,
+                'klkl_id'  => $nilai_matkul['klkl_id'],
+                'mhs_nim'  => $request->nim,
+                'tanggal'  => now(),
+            ]);
+
+            /* // NOTE: untuk KRS_TF dan JDWKUL, karena mereka tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
             // di method performInsert
 
             // Insert KRS_TF
@@ -99,7 +105,7 @@ class NilaiApresiasiController extends Controller
                     'klkl_id' => $nilai_matkul['klkl_id'],
                     'sks'     => $nilai_matkul['sks'],
                 ]);
-            }
+            } */
         }
 
         return redirect()->route('nilaiapresiasi.index')->with('success', 'Nilai Apresiasi Mahasiswa berhasil ditambah.');
@@ -113,7 +119,32 @@ class NilaiApresiasiController extends Controller
             ->where('id_apresiasi', $id_apresiasi)
             ->firstOrFail();
 
-        // Karena ada data2 yang hanya tersimpan di KrsTf, jadi terpaksa mengambil data dari KrsTf
+        $semuaKrs = KrsTf::query()
+            ->where('mhs_nim', $apresiasiMhs->nim)
+            ->whereIn('jkul_klkl_id', $apresiasiMhs->detil->pluck('klkl_id'))
+            ->with(['kurikulum' => function ($kurikulum) {
+                $kurikulum->addSelect('id', 'nama', 'sks');
+            }])
+            ->orderBy('jkul_klkl_id')
+            ->orderBy('jkul_kelas')
+            ->get([
+                'jkul_klkl_id',
+                'jkul_kelas',
+                'mhs_nim',
+                'sts_mk',
+            ]);
+
+        // Memasukkan nilai yang ada pada Apresiasi Detil ke dalam KRS
+        $semuaKrs->transform(function ($krs) use ($apresiasiMhs) {
+            // Cari klkl_id pada Apresiasi Detil yang sama dengan jkul_klkl_id pada KRS, lalu ambil nilai nya
+            $krs->n_akhir = $apresiasiMhs->detil->where('klkl_id', $krs->jkul_klkl_id)->first()->nilai;
+
+            $krs->n_huruf = '';
+
+            return $krs;
+        });
+
+        /*  // Karena ada data2 yang hanya tersimpan di KrsTf, jadi terpaksa mengambil data dari KrsTf
         // Selain itu, Apresiasi Detil tidak bisa di eager loading dengan KrsTf karena memerlukan beberapa key untuk disambungkan
         $semuaKrs = KrsTf::query()
             ->where('jkul_kelas', KrsTf::DEFAULT_JKUL_KELAS)
@@ -122,7 +153,7 @@ class NilaiApresiasiController extends Controller
             ->with(['kurikulum' => function ($kurikulum) {
                 $kurikulum->addSelect(['id', 'nama', 'sks']);
             }])
-            ->get();
+            ->get(); */
 
         return view('nilai-apresiasi.edit', compact('apresiasiMhs', 'semuaKrs'));
     }
@@ -151,7 +182,27 @@ class NilaiApresiasiController extends Controller
         ]);
 
         foreach ($request->nilai_matkul as $nilai_matkul) {
-            // Update Krs Tf dengan cara hapus dulu datanya, lalu diinsert ulang
+            // Update PmhnTf dengan cara hapus dulu datanya, lalu diinsert ulang
+            $pmhnTf = new PmhnTf([
+                'semester' => $apresiasiMhs->smt,
+                'klkl_id'  => $nilai_matkul['klkl_id'],
+                'mhs_nim'  => $apresiasiMhs->nim,
+            ]);
+
+            $pmhnTf->exists = true;
+
+            // Hapus PmhnTf
+            $pmhnTf->delete();
+
+
+            PmhnTf::create([
+                'semester' => $apresiasiMhs->smt,
+                'klkl_id'  => $nilai_matkul['klkl_id'],
+                'mhs_nim'  => $apresiasiMhs->nim,
+                'tanggal'  => now(),
+            ]);
+
+            /* // Update Krs Tf dengan cara hapus dulu datanya, lalu diinsert ulang
             $krs = new KrsTf([
                 'jkul_klkl_id' => $nilai_matkul['klkl_id'],
                 'mhs_nim'      => $apresiasiMhs->nim,
@@ -169,7 +220,7 @@ class NilaiApresiasiController extends Controller
                 'nilai_akhir'  => $nilai_matkul['nilai_angka'], // <- Hati2, key dan value nya berbeda, key nya 'nilai_akhir', sedangkan value nya 'nilai_angka'
                 'nilai_huruf'  => $nilai_matkul['nilai_huruf'],
                 'sts_mk'       => $nilai_matkul['sts_mk'],
-            ]);
+            ]); */
 
 
             // Update Apresiasi Detil
@@ -193,7 +244,30 @@ class NilaiApresiasiController extends Controller
         $apresiasiMhs = $apresiasiMhs->load('detil');
 
         // Looping apresiasi detil
-        $apresiasiMhs->detil->each(function ($apresiasiDetil) use ($apresiasiMhs) {
+        foreach ($apresiasiMhs->detil as $apresiasiDetil) {
+
+            // NOTE: untuk PmhnTf, tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
+            // melainkan langsung isikan attribute nya ke instance nya
+
+            $pmhnTf = new PmhnTf([
+                'semester' => $apresiasiMhs->smt,
+                'klkl_id'  => $apresiasiDetil->klkl_id,
+                'mhs_nim'  => $apresiasiMhs->nim,
+            ]);
+
+            // NOTE: bila instance model tidak didapatkan dari DB, maka attribute "exists" akan bernilai false,
+            // Sedangkan di method delete(), bila "exists" ini bernilai false, maka dia akan langsung return,
+            // dan tidak akan menjalankan method performDeleteOnModel(), maka dari itu attribute ini perlu di set ke true
+            $pmhnTf->exists = true;
+
+            // Hapus PmhnTf
+            $pmhnTf->delete();
+
+            // Hapus Apresiasi Detil
+            $apresiasiDetil->delete();
+        }
+
+        /* $apresiasiMhs->detil->each(function ($apresiasiDetil) use ($apresiasiMhs) {
 
             // NOTE: untuk KRS_TF dan JDWKUL, tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
             // melainkan langsung isikan attribute nya ke instance nya
@@ -233,7 +307,7 @@ class NilaiApresiasiController extends Controller
 
             // Hapus Apresiasi Detil
             $apresiasiDetil->delete();
-        });
+        }); */
 
         // Hapus bukti kegiatan (klo ada)
         if ($apresiasiMhs->bukti_kegiatan) Storage::disk('bukti')->delete($apresiasiMhs->bukti_kegiatan);
@@ -254,7 +328,36 @@ class NilaiApresiasiController extends Controller
 
     public function jsonGetMatkulMhs($nim, $smt)
     {
-        $matkul = TrklklMf::query()
+        $matkul = KrsTf::query()
+            ->where('mhs_nim', $nim)
+            ->with(['kurikulum' => function ($kurikulum) {
+                $kurikulum->addSelect('id', 'nama', 'sks');
+            }])
+            ->orderBy('jkul_klkl_id')
+            ->orderBy('jkul_kelas')
+            ->get([
+                'jkul_klkl_id',
+                'jkul_kelas',
+                'mhs_nim',
+                'sts_mk',
+            ]);
+
+        // Ambil semua klkl_id di ApresiasiDetil yang memiliki data di ApresiasiMhs dengan smt dan nim yang dipass
+        $apresiasiDetil = ApresiasiDetil::query()
+            ->whereHas('mahasiswa', function ($mahasiswa) use ($nim, $smt) {
+                $mahasiswa->where('smt', $smt)->where('nim', $nim);
+            })
+            ->get()
+            ->pluck('klkl_id');
+
+        $matkul = $matkul
+            ->reject(function ($matkul) use ($apresiasiDetil) {
+                return $apresiasiDetil->contains($matkul->klkl_id);
+            })
+            // Setelah di reject, index data perlu di reset ulang, agar dapat terbaca di javascript
+            ->values();
+
+        /* $matkul = TrklklMf::query()
             ->where('mhs_nim', $nim)
             ->where('semester', $smt)
             ->with(['kurikulum' => function ($kurikulum) {
@@ -281,7 +384,7 @@ class NilaiApresiasiController extends Controller
                 return $apresiasiDetil->contains($matkul->klkl_id);
             })
             // Setelah di reject, index data perlu di reset ulang, agar dapat terbaca di javascript
-            ->values();
+            ->values(); */
 
         return response()->json([
             'matkul' => $matkul->count() ? $matkul : null,
