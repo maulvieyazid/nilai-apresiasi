@@ -28,9 +28,9 @@
                                     <tr>
                                         <th rowspan="2" class="text-center">Semester</th>
                                         <th rowspan="2" class="text-center">NIM</th>
+                                        <th rowspan="2" class="text-center">Nama</th>
                                         <th colspan="4" class="text-center">Kegiatan</th>
-                                        <th rowspan="2" class="text-center">
-                                            <!-- style="width: 10%" -->
+                                        <th rowspan="2" class="text-center" style="width: 10%">
                                             Aksi
                                         </th>
                                     </tr>
@@ -60,6 +60,9 @@
                                             </td>
                                             <td class="text-center">
                                                 {{ $apresiasiMhs->nim }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ $apresiasiMhs->mhs->nama ?? '' }}
                                             </td>
                                             <td class="text-center">
                                                 {{ $apresiasiMhs->jenis_kegiatan }}

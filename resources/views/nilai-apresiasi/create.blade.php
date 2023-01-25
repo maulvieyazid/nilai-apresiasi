@@ -51,9 +51,9 @@
                                     <div class="col-2">
                                         <div class="form-group">
                                             <label for="smt">
-                                                Semester <span class="text-danger">*</span>
+                                                Semester
                                             </label>
-                                            <input type="text" id="smt" class="form-control" placeholder="Semester" name="smt" required x-ref="smt" @input.debounce="getMatkulMhs()">
+                                            <input type="text" id="smt" class="form-control" placeholder="Semester" name="smt" readonly value="{{ $smt->smt_aktif }}" title="Semester Aktif" x-ref="smt" {{-- @input.debounce="getMatkulMhs()" --}}>
                                         </div>
                                     </div>
                                     <!-- NIM -->
@@ -253,10 +253,10 @@
                         this.semuaMatkul = [];
 
                         // Klo semester belum diisi
-                        if (!this.$refs.smt.value) {
+                        /* if (!this.$refs.smt.value) {
                             this.matkulNotExistText = 'Mohon isi semester';
                             return;
-                        }
+                        } */
 
                         // Klo nim belum diisi
                         if (!this.$refs.nim.value) {

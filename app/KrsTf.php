@@ -89,6 +89,44 @@ class KrsTf extends Model
     }
 
 
+
+    /**
+     * Perform a model update operation.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return bool
+     */
+    protected function performUpdate(Eloquent\Builder $query)
+    {
+        // If the updating event returns false, we will cancel the update operation so
+        // developers can hook Validation systems into their models and cancel this
+        // operation if the model does not pass validation. Otherwise, we update.
+        if ($this->fireModelEvent('updating') === false) {
+            return false;
+        }
+
+        $sql = <<<SQL
+            BEGIN
+                {$this->skema}UPD_APPRESIASI_KRS (
+                    :mhs_nim,
+                    :jkul_klkl_id,
+                    :nilai_uas
+                );
+
+            END;
+        SQL;
+
+        $stmt = DB::getPdo()->prepare($sql);
+        $stmt->bindValue('mhs_nim', $this->mhs_nim);
+        $stmt->bindValue('jkul_klkl_id', $this->jkul_klkl_id);
+        $stmt->bindValue('nilai_uas', $this->nilai_uas);
+        $stmt->execute();
+
+        return true;
+    }
+
+
+
     /**
      * Perform the actual delete query on this model instance.
      *

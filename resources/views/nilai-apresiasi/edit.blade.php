@@ -115,7 +115,7 @@
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    {{-- <th class="text-center" rowspan="2">Pilih</th> --}}
+                                                    <th class="text-center" rowspan="2">Pilih</th>
                                                     <th class="text-center" colspan="100%">Matakuliah yang dikonversi</th>
                                                 </tr>
                                                 <tr>
@@ -129,13 +129,18 @@
                                             </thead>
                                             <tbody x-init="semuaKrs = {{ $semuaKrs->toJson() }}">
                                                 <template x-for="krs in semuaKrs">
-                                                    <tr x-id="['matkul-konversi']">
+                                                    <tr :class="!krs.centang ? 'table-secondary' : ''" x-id="['matkul-konversi']">
 
                                                         <!-- Input type hidden ini untuk menyertakan data tambahan di array nilai_matkul -->
-                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][klkl_id]`" :value="krs.jkul_klkl_id">
-                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_huruf]`" :value="krs.n_huruf">
-                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][sts_mk]`" :value="krs.sts_mk">
+                                                        <!-- x-bind disabled digunakan untuk mendisable input hidden agar tidak ikut tersubmit, saat barisnya tidak dicentang -->
+                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][klkl_id]`" :value="krs.jkul_klkl_id" x-bind:disabled="!krs.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_huruf]`" :value="krs.n_huruf" x-bind:disabled="!krs.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][sts_mk]`" :value="krs.sts_mk" x-bind:disabled="!krs.centang">
 
+                                                        <td class="text-center">
+                                                            <!-- Jika dicentang, maka langsung focus ke inputan nilai -->
+                                                            <input type="checkbox" id="checkbox1" class="form-check-input" x-model="krs.centang" @change="if ($el.checked) document.getElementById($id('matkul-konversi')).focus()">
+                                                        </td>
                                                         <td class="text-center">
                                                             <span x-text="krs.jkul_kelas"></span>
                                                         </td>
@@ -149,8 +154,8 @@
                                                             <span x-text="krs.kurikulum.sks"></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <input type="number" step="any" class="form-control" :id="$id('matkul-konversi')" placeholder="Nilai" x-model="krs.n_akhir" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_angka]`"
-                                                                {{-- @input.debounce="getNilaiHuruf(krs)" --}}>
+                                                            <input type="number" step="any" class="form-control" :id="$id('matkul-konversi')" placeholder="Nilai" x-model="krs.n_uas" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_angka]`"
+                                                                x-bind:disabled="!krs.centang" {{-- @input.debounce="getNilaiHuruf(krs)" --}}>
                                                         </td>
                                                         {{-- <td class="text-center">
                                                             <span x-text="krs.n_huruf"></span>
@@ -188,6 +193,7 @@
     {{-- <script defer src="{{ asset('assets/vendors/alpine/alpine-mask@3.10.5.min.js') }}"></script> --}}
     <script defer src="{{ asset('assets/vendors/alpine/alpine@3.10.5.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/notiflix/notiflix-notify-aio-3.2.6.min.js') }}"></script>
 
     <script>
         document.addEventListener('alpine:init', () => {
@@ -195,6 +201,14 @@
                 return {
                     semuaKrs: [],
                     canSubmit: true,
+
+                    get krsTercentang() {
+                        let hasil = this.semuaKrs;
+
+                        hasil = hasil.filter((krs) => !!krs.centang);
+
+                        return hasil;
+                    },
 
                     getNilaiHuruf(krs) {
                         const loader_id = this.$id('matkul-konversi', 'loader')
@@ -237,6 +251,14 @@
                         // Cek sekaligus trigger validasi form html
                         if (!document.querySelector('#formEditNilaiApresiasi').reportValidity()) {
                             return;
+                        }
+
+                        // Cek jika ada nilai yang null pada matakuliah yang dicentang / dipilih
+                        for (const krs of this.krsTercentang) {
+                            if (!krs.n_uas) {
+                                Notiflix.Notify.failure('Nilai Matakuliah yang dipilih tidak boleh kosong.');
+                                return;
+                            }
                         }
 
                         // Disable btn simpan
