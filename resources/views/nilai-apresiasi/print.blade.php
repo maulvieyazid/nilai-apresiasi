@@ -27,7 +27,7 @@
     </div>
 
     <!-- NIM dan Nama -->
-    <div class="row mt-5">
+    <div class="row mt-2">
         <div class="col-5">
             <table class="table table-borderless">
                 <tbody>
@@ -90,11 +90,10 @@
     </div>
 
     <!-- TTD -->
-    <div class="row mt-4">
+    <div class="row mt-3" style="page-break-inside: avoid">
         <div class="col d-flex justify-content-end">
             <div class="text-center me-5">
                 <p>Surabaya, {{ now()->format('d-m-Y') }}</p>
-                <br>
                 <br>
                 <br>
                 <p>
