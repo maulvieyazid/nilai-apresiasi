@@ -370,7 +370,6 @@ class NilaiApresiasiController extends Controller
             ->first();
 
 
-        // dd($apresiasiMhs->krs);
         return view('nilai-apresiasi.print', compact('apresiasiMhs'));
     }
 }
