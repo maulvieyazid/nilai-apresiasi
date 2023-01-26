@@ -34,7 +34,7 @@
                     <tr>
                         <td>NIM</td>
                         <td>:</td>
-                        <td>{{ $apresiasiMhs->smt }}</td>
+                        <td>{{ $apresiasiMhs->nim }}</td>
                     </tr>
                     <tr>
                         <td>NAMA</td>
