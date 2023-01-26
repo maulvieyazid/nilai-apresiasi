@@ -12,7 +12,7 @@
     <title>Nilai Apresiasi {{ $apresiasiMhs->nim }} Semester {{ $apresiasiMhs->smt }}</title>
 </head>
 
-<body>
+<body style="font-family: Calibri, sans-serif">
     <!-- Header Judul -->
     <div class="row">
         <div class="col text-center">
@@ -22,7 +22,7 @@
                 </svg>
                 HURUF
             </p>
-            <h3 style="color: rgb(39,112,192)">APRESIASI - {{ $apresiasiMhs->smt }}</h3>
+            <h3 class="fw-semibold" style="color: rgb(39,112,192);">APRESIASI - {{ $apresiasiMhs->smt }}</h3>
         </div>
     </div>
 
