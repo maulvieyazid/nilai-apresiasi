@@ -32,13 +32,19 @@ class KrsTf extends Model
         return $this->jkul_klkl_id;
     }
 
+    public function getNilaiHurufAttribute()
+    {
+        $nilai_huruf = DB::select("select nilai_huruf(?) AS nilai_huruf from dual", [$this->n_uas])[0]->nilai_huruf;
+
+        return $nilai_huruf;
+    }
+
 
     // RELATIONSHIP
     public function kurikulum()
     {
         return $this->belongsTo(Kurikulum::class, 'jkul_klkl_id', 'id');
     }
-
 
 
     /**

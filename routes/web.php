@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', 'NilaiApresiasiController@index')->name('nilaiapresiasi.index');
 Route::get('/create', 'NilaiApresiasiController@create')->name('nilaiapresiasi.create');
 Route::get('/edit/{id_apresiasi}', 'NilaiApresiasiController@edit')->name('nilaiapresiasi.edit');
+Route::get('/cetak/{id_apresiasi}', 'NilaiApresiasiController@cetak')->name('nilaiapresiasi.cetak');
 Route::put('/update/{apresiasiMhs}', 'NilaiApresiasiController@update')->name('nilaiapresiasi.update');
 Route::post('/store', 'NilaiApresiasiController@store')->name('nilaiapresiasi.store');
 Route::delete('/destroy/{apresiasiMhs}', 'NilaiApresiasiController@destroy')->name('nilaiapresiasi.destroy');

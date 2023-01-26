@@ -40,6 +40,11 @@ class ApresiasiMhs extends Model
         return $this->belongsTo(Mahasiswa::class, 'nim', 'nim')->addSelect(['nim', 'nama']);
     }
 
+    public function krs()
+    {
+        return $this->hasMany(KrsTf::class, 'mhs_nim', 'nim');
+    }
+
 
     /**
      * Perform a model insert operation.

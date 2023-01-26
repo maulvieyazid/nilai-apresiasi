@@ -353,4 +353,24 @@ class NilaiApresiasiController extends Controller
             'nilai_huruf' => $nilai_huruf
         ]);
     }
+
+    public function cetak($id_apresiasi)
+    {
+        $apresiasiDetil = ApresiasiDetil::where('id_apresiasi', $id_apresiasi)->get();
+
+        $apresiasiMhs = ApresiasiMhs::query()
+            ->with([
+                'krs' => function ($krs) use ($apresiasiDetil) {
+                    $krs->whereIn('jkul_klkl_id', $apresiasiDetil->pluck('klkl_id'))
+                        ->with('kurikulum');
+                },
+                'mhs'
+            ])
+            ->where('id_apresiasi', $id_apresiasi)
+            ->first();
+
+
+        // dd($apresiasiMhs->krs);
+        return view('nilai-apresiasi.print', compact('apresiasiMhs'));
+    }
 }
