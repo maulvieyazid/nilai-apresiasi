@@ -39,8 +39,8 @@
     </div>
 
     <!-- NIM dan Nama -->
-    <div class="row mt-2">
-        <div class="col-5">
+    <div class="row" style="margin-top: 1.5rem;">
+        <div class="col-12">
             <table class="table table-borderless">
                 <tbody>
                     <tr>
