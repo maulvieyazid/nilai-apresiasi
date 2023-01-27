@@ -396,6 +396,10 @@ class NilaiApresiasiController extends Controller
         ]);
 
         $document->WriteHTML(view('nilai-apresiasi.print_new', compact('apresiasiMhs')));
-        $document->Output();
+
+        // Parameter pertama adalah nama file nya, jangan lupa dikasih ".pdf"
+        // Parameter kedua adalah destinasinya, mau ditampilin di browser, atau langsung di download, dll
+        // Source : https://mpdf.github.io/reference/mpdf-functions/output.html
+        $document->Output("Nilai Apresiasi {$apresiasiMhs->nim} Semester {$apresiasiMhs->smt}.pdf", "I");
     }
 }
