@@ -13,7 +13,7 @@ class PmhnTf extends Model
 
     const DEFAULT_JNS_PMHN = '5';
 
-    protected $table = 'AAK_MAN.PMHN_TF';
+    protected $table = 'V_PMHN';
 
     public $incrementing = false;
 

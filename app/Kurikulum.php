@@ -9,7 +9,7 @@ class Kurikulum extends Model
 {
     use HasModelExtender;
 
-    protected $table = 'KURLKL_MF';
+    protected $table = 'V_KURIKULUM';
 
     protected $primaryKey = '';
 
