@@ -40,17 +40,17 @@
 
     <!-- NIM dan Nama -->
     <div class="row" style="margin-top: 1.5rem;">
-        <div class="col-12">
+        <div class="col">
             <table class="table table-borderless">
                 <tbody>
                     <tr>
-                        <td>NIM</td>
-                        <td>:</td>
+                        <td style="width: 15%">NIM</td>
+                        <td style="width: 5%">:</td>
                         <td>{{ $apresiasiMhs->nim }}</td>
                     </tr>
                     <tr>
-                        <td>NAMA</td>
-                        <td>:</td>
+                        <td style="width: 15%">NAMA</td>
+                        <td style="width: 5%">:</td>
                         <td>{{ $apresiasiMhs->mhs->nama ?? '' }}</td>
                     </tr>
                 </tbody>
