@@ -11,6 +11,7 @@ use App\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Mpdf\Mpdf;
 
 class NilaiApresiasiController extends Controller
 {
@@ -371,5 +372,30 @@ class NilaiApresiasiController extends Controller
 
 
         return view('nilai-apresiasi.print', compact('apresiasiMhs'));
+    }
+
+    public function cetak_new($id_apresiasi)
+    {
+        $apresiasiDetil = ApresiasiDetil::where('id_apresiasi', $id_apresiasi)->get();
+
+        $apresiasiMhs = ApresiasiMhs::query()
+            ->with([
+                'krs' => function ($krs) use ($apresiasiDetil) {
+                    $krs->whereIn('jkul_klkl_id', $apresiasiDetil->pluck('klkl_id'))
+                        ->with('kurikulum');
+                },
+                'mhs'
+            ])
+            ->where('id_apresiasi', $id_apresiasi)
+            ->first();
+
+        $document = new Mpdf([
+            'mode'        => 'utf-8',
+            'format'      => 'A4',
+            'orientation' => 'P',
+        ]);
+
+        $document->WriteHTML(view('nilai-apresiasi.print_new', compact('apresiasiMhs')));
+        $document->Output();
     }
 }
