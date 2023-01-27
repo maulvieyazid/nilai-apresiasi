@@ -144,6 +144,8 @@
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][nilai_huruf]`" :value="matkul.nilai_huruf" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_mk]`" :value="matkul.sts_mk" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sks]`" :value="matkul.kurikulum.sks" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_pre]`" :value="matkul.sts_pre" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][pro_hdr]`" :value="matkul.pro_hdr" x-bind:disabled="!matkul.centang">
 
                                                         <td class="text-center">
                                                             <!-- Jika dicentang, maka langsung focus ke inputan nilai -->
@@ -210,6 +212,7 @@
     <script defer src="{{ asset('assets/vendors/alpine/alpine-mask@3.10.5.min.js') }}"></script>
     <script defer src="{{ asset('assets/vendors/alpine/alpine@3.10.5.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/notiflix/notiflix-notify-aio-3.2.6.min.js') }}"></script>
 
     <script>
         document.addEventListener('alpine:init', () => {
@@ -218,6 +221,14 @@
                     matkulNotExistText: '',
                     canSubmit: true,
                     semuaMatkul: [],
+
+                    get matkulTercentang() {
+                        let hasil = this.semuaMatkul;
+
+                        hasil = hasil.filter((matkul) => !!matkul.centang);
+
+                        return hasil;
+                    },
 
                     getNamaMhs() {
                         this.canSubmit = true;
@@ -333,6 +344,20 @@
                         // Cek sekaligus trigger validasi form html
                         if (!document.querySelector('#formTambahNilaiApresiasi').reportValidity()) {
                             return;
+                        }
+
+                        // Jika tidak ada matkul yang dicentang
+                        if (this.matkulTercentang.length == 0) {
+                            Notiflix.Notify.failure('Belum ada matakuliah yang dipilih.');
+                            return;
+                        }
+
+                        // Jika ada nilai yang null pada matakuliah yang dicentang / dipilih
+                        for (const matkul of this.matkulTercentang) {
+                            if (!matkul.nilai_angka) {
+                                Notiflix.Notify.failure('Nilai Matakuliah yang dipilih tidak boleh kosong.');
+                                return;
+                            }
                         }
 
                         // Disable btn simpan

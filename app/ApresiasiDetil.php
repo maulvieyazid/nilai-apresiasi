@@ -23,6 +23,8 @@ class ApresiasiDetil extends Model
         'id_apresiasi',
         'klkl_id',
         'nilai',
+        'persen_kehadiran',
+        'sts_presensi',
     ];
 
     public function mahasiswa()
@@ -48,7 +50,9 @@ class ApresiasiDetil extends Model
                 {$this->skema}INS_APRESIASI_DETIL (
                     :id_apresiasi,
                     :klkl_id,
-                    :nilai
+                    :nilai,
+                    :persen_kehadiran,
+                    :sts_presensi
                 );
 
             END;
@@ -58,6 +62,8 @@ class ApresiasiDetil extends Model
         $stmt->bindValue('id_apresiasi', $this->id_apresiasi);
         $stmt->bindValue('klkl_id', $this->klkl_id);
         $stmt->bindValue('nilai', $this->nilai);
+        $stmt->bindValue('persen_kehadiran', $this->persen_kehadiran);
+        $stmt->bindValue('sts_presensi', $this->sts_presensi);
         $stmt->execute();
 
         // We will go ahead and set the exists property to true, so that it is set when

@@ -253,6 +253,12 @@
                             return;
                         }
 
+                        // Jika tidak ada matkul yang dicentang
+                        if (this.krsTercentang.length == 0) {
+                            Notiflix.Notify.failure('Harus ada matkul yang dicentang.');
+                            return;
+                        }
+
                         // Cek jika ada nilai yang null pada matakuliah yang dicentang / dipilih
                         for (const krs of this.krsTercentang) {
                             if (!krs.n_uas) {

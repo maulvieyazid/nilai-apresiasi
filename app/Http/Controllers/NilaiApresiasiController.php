@@ -67,9 +67,11 @@ class NilaiApresiasiController extends Controller
         // Insert Apresiasi Detil berdasarkan id_apresiasi dari Apresiasi Mhs
         foreach ($request->nilai_matkul as $nilai_matkul) {
             ApresiasiDetil::create([
-                'id_apresiasi' => $apresiasiMhs->id_apresiasi,
-                'klkl_id'      => $nilai_matkul['klkl_id'],
-                'nilai'        => $nilai_matkul['nilai_angka'],
+                'id_apresiasi'     => $apresiasiMhs->id_apresiasi,
+                'klkl_id'          => $nilai_matkul['klkl_id'],
+                'nilai'            => $nilai_matkul['nilai_angka'],
+                'persen_kehadiran' => $nilai_matkul['pro_hdr'],
+                'sts_presensi'     => $nilai_matkul['sts_pre'],
             ]);
 
             // NOTE: untuk PMHN_TF, karena tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
@@ -87,7 +89,9 @@ class NilaiApresiasiController extends Controller
             $krs = new KrsTf([
                 'mhs_nim'      => $request->nim,
                 'jkul_klkl_id' => $nilai_matkul['klkl_id'],
-                'nilai_uas'  => $nilai_matkul['nilai_angka'],
+                'nilai_uas'    => $nilai_matkul['nilai_angka'],
+                'pro_hdr'      => KrsTf::DEFAULT_PRO_HDR,
+                'sts_pre'      => KrsTf::DEFAULT_STS_PRE,
             ]);
             $krs->exists = true;
             $krs->save();
@@ -106,7 +110,7 @@ class NilaiApresiasiController extends Controller
             ->firstOrFail();
 
         // Mengambil Apresiasi Detail dari nim yang sama, tetapi id_apresiasi nya tidak sama dengan parameter $id_apresiasi
-        // Dengan kata lain, mengambil matkul2 pada detil apresiasi dari mahasiswa yang sama, yang sudah dipakai di kegiatan yang lain
+        // Dengan kata lain, mengambil matkul2 pada Apresiasi Detil dari mahasiswa yang sama, tapi yang sudah dipakai di kegiatan yang lain
         $apresiasiDetilLain = ApresiasiDetil::query()
             ->whereHas('mahasiswa', function ($mahasiswa) use ($apresiasiMhs) {
                 $mahasiswa
@@ -198,6 +202,8 @@ class NilaiApresiasiController extends Controller
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $apresiasiDetil->klkl_id,
                 'nilai_uas'    => null,
+                'pro_hdr'      => $apresiasiDetil->persen_kehadiran,
+                'sts_pre'      => $apresiasiDetil->sts_presensi,
             ]);
             $krs->exists = true;
             $krs->save();
@@ -222,6 +228,12 @@ class NilaiApresiasiController extends Controller
             // Kalau matkul nya ada di kegiatan lain
             if (!!$inApresiasiLain) continue;
 
+            // Ambil data KRS sebelum di update
+            $krsBeforeUpdate = KrsTf::query()
+                ->where('mhs_nim', $apresiasiMhs->nim)
+                ->where('jkul_klkl_id', $nilai_matkul['klkl_id'])
+                ->first();
+
             // Insert PMHN_TF
             PmhnTf::create([
                 'semester' => $apresiasiMhs->smt,
@@ -236,15 +248,19 @@ class NilaiApresiasiController extends Controller
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $nilai_matkul['klkl_id'],
                 'nilai_uas'    => $nilai_matkul['nilai_angka'],
+                'pro_hdr'      => KrsTf::DEFAULT_PRO_HDR,
+                'sts_pre'      => KrsTf::DEFAULT_STS_PRE,
             ]);
             $krs->exists = true;
             $krs->save();
 
             // Insert ApresiasiDetil baru
             ApresiasiDetil::create([
-                'id_apresiasi' => $apresiasiMhs->id_apresiasi,
-                'klkl_id'      => $nilai_matkul['klkl_id'],
-                'nilai'        => $nilai_matkul['nilai_angka'],
+                'id_apresiasi'     => $apresiasiMhs->id_apresiasi,
+                'klkl_id'          => $nilai_matkul['klkl_id'],
+                'nilai'            => $nilai_matkul['nilai_angka'],
+                'persen_kehadiran' => $krsBeforeUpdate->pro_hdr,
+                'sts_presensi'     => $krsBeforeUpdate->sts_pre,
             ]);
         }
 
@@ -284,6 +300,8 @@ class NilaiApresiasiController extends Controller
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $apresiasiDetil->klkl_id,
                 'nilai_uas'    => null,
+                'pro_hdr'      => $apresiasiDetil->persen_kehadiran,
+                'sts_pre'      => $apresiasiDetil->sts_presensi,
             ]);
             $krs->exists = true;
             $krs->save();
@@ -324,6 +342,8 @@ class NilaiApresiasiController extends Controller
                 'jkul_kelas',
                 'mhs_nim',
                 'sts_mk',
+                'sts_pre',
+                'pro_hdr',
             ]);
 
         // Ambil semua klkl_id di ApresiasiDetil yang memiliki data di ApresiasiMhs dengan smt dan nim yang dipass

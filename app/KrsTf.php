@@ -12,7 +12,9 @@ class KrsTf extends Model
 {
     use HasModelExtender;
 
-    const DEFAULT_JKUL_KELAS = 'PR';
+    // const DEFAULT_JKUL_KELAS = 'PR';
+    const DEFAULT_PRO_HDR = 100;
+    const DEFAULT_STS_PRE = null;
 
     // protected $table = 'AAK_MAN.KRS_TF';
     protected $table = 'V_KRST';
@@ -53,7 +55,7 @@ class KrsTf extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return bool
      */
-    protected function performInsert(Eloquent\Builder $query)
+    /* protected function performInsert(Eloquent\Builder $query)
     {
         if ($this->fireModelEvent('creating') === false) {
             return false;
@@ -93,7 +95,7 @@ class KrsTf extends Model
 
         return true;
     }
-
+ */
 
 
     /**
@@ -116,7 +118,9 @@ class KrsTf extends Model
                 {$this->skema}UPD_APPRESIASI_KRS (
                     :mhs_nim,
                     :jkul_klkl_id,
-                    :nilai_uas
+                    :nilai_uas,
+                    :pro_hdr,
+                    :sts_pre
                 );
 
             END;
@@ -126,6 +130,8 @@ class KrsTf extends Model
         $stmt->bindValue('mhs_nim', $this->mhs_nim);
         $stmt->bindValue('jkul_klkl_id', $this->jkul_klkl_id);
         $stmt->bindValue('nilai_uas', $this->nilai_uas);
+        $stmt->bindValue('pro_hdr', $this->pro_hdr);
+        $stmt->bindValue('sts_pre', $this->sts_pre);
         $stmt->execute();
 
         return true;
@@ -138,7 +144,7 @@ class KrsTf extends Model
      *
      * @return void
      */
-    protected function performDeleteOnModel()
+    /*  protected function performDeleteOnModel()
     {
         $sql = <<<SQL
             BEGIN
@@ -164,5 +170,5 @@ class KrsTf extends Model
         $stmt->execute();
 
         $this->exists = false;
-    }
+    } */
 }
