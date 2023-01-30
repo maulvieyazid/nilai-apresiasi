@@ -66,8 +66,8 @@ class NilaiApresiasiController extends Controller
 
         // Insert Apresiasi Detil berdasarkan id_apresiasi dari Apresiasi Mhs
         foreach ($request->nilai_matkul as $matkul) {
-            // Apresiasi Detil juga menyimpan nliai "pro_hdr" dan "sts_pre" dari KRS, sebagai penampung, apabila matkul nya diubah.
-            // Karena saat matkul ditambahkan ke nilai apresiasi, maka "pro_hdr" dan "sts_pre" akan diubah.
+            // Apresiasi Detil juga menyimpan nilai PRO_HDR, STS_PRE, dan N_UAS dari KRS, sebagai penampung, apabila matkul nya diubah.
+            // Karena saat matkul ditambahkan ke nilai apresiasi, maka PRO_HDR, STS_PRE, dan N_UAS akan diubah.
             ApresiasiDetil::create([
                 'id_apresiasi'     => $apresiasiMhs->id_apresiasi,
                 'klkl_id'          => $matkul['klkl_id'],
@@ -200,7 +200,7 @@ class NilaiApresiasiController extends Controller
             $pmhnTf->delete();
 
 
-            // Ubah N_UAS pada KRS_TF menjadi null dan kembalikan nilai PRO_HDR dan STS_PRE dari ApresiasiDetil
+            // Kembalikan nilai PRO_HDR, STS_PRE dan N_UAS pada KRS dari ApresiasiDetil
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
@@ -234,7 +234,7 @@ class NilaiApresiasiController extends Controller
             if (!!$inApresiasiLain) continue;
 
             // Ambil data KRS sebelum di update
-            // ini untuk mengambil nilai PRO_HDR dan STS_PRE untuk dimasukkan ke ApresiasiDetil yang baru
+            // ini untuk mengambil nilai PRO_HDR, STS_PRE, dan N_UAS untuk dimasukkan ke ApresiasiDetil yang baru
             $krsBeforeUpdate = KrsTf::query()
                 ->where('mhs_nim', $apresiasiMhs->nim)
                 ->where('jkul_klkl_id', $matkul['klkl_id'])
@@ -300,7 +300,7 @@ class NilaiApresiasiController extends Controller
             // Hapus PmhnTf
             $pmhnTf->delete();
 
-            // Ubah N_UAS pada KRS_TF menjadi null
+            // Kembalikan nilai PRO_HDR, STS_PRE dan N_UAS pada KRS dari ApresiasiDetil
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
