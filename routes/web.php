@@ -33,7 +33,7 @@ Route::get('login', function (Request $request) {
     $secret_code = config('custom.secret_code');
 
     // Cek kombinasi secret code dan nik yang sudah di hash
-    $cekLogin = Hash::check($secret_code . $request->nik, $request->pass);
+    $cekLogin = Hash::check($secret_code . $request->nik, $request->token);
 
     // Jika hash nya cocok/sama
     if ($cekLogin) {
