@@ -146,6 +146,7 @@
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sks]`" :value="matkul.kurikulum.sks" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_pre]`" :value="matkul.sts_pre" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][pro_hdr]`" :value="matkul.pro_hdr" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][n_uas]`" :value="matkul.n_uas" x-bind:disabled="!matkul.centang">
 
                                                         <td class="text-center">
                                                             <!-- Jika dicentang, maka langsung focus ke inputan nilai -->

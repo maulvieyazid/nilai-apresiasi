@@ -25,6 +25,7 @@ class ApresiasiDetil extends Model
         'nilai',
         'persen_kehadiran',
         'sts_presensi',
+        'uas_lama',
     ];
 
     public function mahasiswa()
@@ -52,7 +53,8 @@ class ApresiasiDetil extends Model
                     :klkl_id,
                     :nilai,
                     :persen_kehadiran,
-                    :sts_presensi
+                    :sts_presensi,
+                    :uas_lama
                 );
 
             END;
@@ -64,6 +66,7 @@ class ApresiasiDetil extends Model
         $stmt->bindValue('nilai', $this->nilai);
         $stmt->bindValue('persen_kehadiran', $this->persen_kehadiran);
         $stmt->bindValue('sts_presensi', $this->sts_presensi);
+        $stmt->bindValue('uas_lama', $this->uas_lama);
         $stmt->execute();
 
         // We will go ahead and set the exists property to true, so that it is set when
@@ -84,7 +87,7 @@ class ApresiasiDetil extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return bool
      */
-    protected function performUpdate(Eloquent\Builder $query)
+    /* protected function performUpdate(Eloquent\Builder $query)
     {
         // If the updating event returns false, we will cancel the update operation so
         // developers can hook Validation systems into their models and cancel this
@@ -112,7 +115,7 @@ class ApresiasiDetil extends Model
 
 
         return true;
-    }
+    } */
 
 
     /**

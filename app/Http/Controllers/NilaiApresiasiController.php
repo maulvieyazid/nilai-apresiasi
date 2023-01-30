@@ -74,6 +74,7 @@ class NilaiApresiasiController extends Controller
                 'nilai'            => $matkul['nilai_angka'],
                 'persen_kehadiran' => $matkul['pro_hdr'],
                 'sts_presensi'     => $matkul['sts_pre'],
+                'uas_lama'         => $matkul['n_uas'],
             ]);
 
             // NOTE: untuk PMHN_TF, karena tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
@@ -205,7 +206,7 @@ class NilaiApresiasiController extends Controller
             $krs = new KrsTf([
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $apresiasiDetil->klkl_id,
-                'nilai_uas'    => null,
+                'nilai_uas'    => $apresiasiDetil->uas_lama,
                 'pro_hdr'      => $apresiasiDetil->persen_kehadiran,
                 'sts_pre'      => $apresiasiDetil->sts_presensi,
             ]);
@@ -266,6 +267,7 @@ class NilaiApresiasiController extends Controller
                 'nilai'            => $matkul['nilai_angka'],
                 'persen_kehadiran' => $krsBeforeUpdate->pro_hdr,
                 'sts_presensi'     => $krsBeforeUpdate->sts_pre,
+                'uas_lama'         => $krsBeforeUpdate->n_uas,
             ]);
         }
 
@@ -304,7 +306,7 @@ class NilaiApresiasiController extends Controller
             $krs = new KrsTf([
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $apresiasiDetil->klkl_id,
-                'nilai_uas'    => null,
+                'nilai_uas'    => $apresiasiDetil->uas_lama,
                 'pro_hdr'      => $apresiasiDetil->persen_kehadiran,
                 'sts_pre'      => $apresiasiDetil->sts_presensi,
             ]);
@@ -349,6 +351,7 @@ class NilaiApresiasiController extends Controller
                 'sts_mk',
                 'sts_pre',
                 'pro_hdr',
+                'n_uas',
             ]);
 
         // Ambil semua klkl_id di ApresiasiDetil yang memiliki data di ApresiasiMhs dengan smt dan nim yang dipass
