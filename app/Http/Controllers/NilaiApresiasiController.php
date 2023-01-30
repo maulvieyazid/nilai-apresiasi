@@ -65,31 +65,33 @@ class NilaiApresiasiController extends Controller
         ]);
 
         // Insert Apresiasi Detil berdasarkan id_apresiasi dari Apresiasi Mhs
-        foreach ($request->nilai_matkul as $nilai_matkul) {
+        foreach ($request->nilai_matkul as $matkul) {
+            // Apresiasi Detil juga menyimpan nliai "pro_hdr" dan "sts_pre" dari KRS, sebagai penampung, apabila matkul nya diubah.
+            // Karena saat matkul ditambahkan ke nilai apresiasi, maka "pro_hdr" dan "sts_pre" akan diubah.
             ApresiasiDetil::create([
                 'id_apresiasi'     => $apresiasiMhs->id_apresiasi,
-                'klkl_id'          => $nilai_matkul['klkl_id'],
-                'nilai'            => $nilai_matkul['nilai_angka'],
-                'persen_kehadiran' => $nilai_matkul['pro_hdr'],
-                'sts_presensi'     => $nilai_matkul['sts_pre'],
+                'klkl_id'          => $matkul['klkl_id'],
+                'nilai'            => $matkul['nilai_angka'],
+                'persen_kehadiran' => $matkul['pro_hdr'],
+                'sts_presensi'     => $matkul['sts_pre'],
             ]);
 
             // NOTE: untuk PMHN_TF, karena tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
             // di method performInsert
             PmhnTf::create([
                 'semester' => $request->smt,
-                'klkl_id'  => $nilai_matkul['klkl_id'],
+                'klkl_id'  => $matkul['klkl_id'],
                 'mhs_nim'  => $request->nim,
                 'tanggal'  => now(),
             ]);
 
-            // Melakukan update N_UAS pada KRS_TF
+            // Melakukan update N_UAS, PRO_HDR dan STS_PRE pada KRS_TF
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
                 'mhs_nim'      => $request->nim,
-                'jkul_klkl_id' => $nilai_matkul['klkl_id'],
-                'nilai_uas'    => $nilai_matkul['nilai_angka'],
+                'jkul_klkl_id' => $matkul['klkl_id'],
+                'nilai_uas'    => $matkul['nilai_angka'],
                 'pro_hdr'      => KrsTf::DEFAULT_PRO_HDR,
                 'sts_pre'      => KrsTf::DEFAULT_STS_PRE,
             ]);
@@ -177,8 +179,10 @@ class NilaiApresiasiController extends Controller
 
 
         // Untuk update Nilai Apresiasi, dilakukan dua tahap pemrosesan
-        // tahap pertama yaitu menghapus data2 pada PMHN_TF dan pada ApresiasiDetil, serta mengosongkan N_UAS pada KRS_TF
-        // lalu tahap kedua, yaitu menginsert kembali data2 baru ke PMHN_TF dan ApresiasiDetil, serta mengupdate N_UAS pada KRS_TF
+        // - Tahap pertama yaitu menghapus data2 pada PMHN_TF dan pada ApresiasiDetil,
+        //   serta mengosongkan N_UAS dan mengembalikan nilai PRO_HDR dan STS_PRE pada KRS_TF yang sebelumnya ditampung di ApresiasiDetil
+        //
+        // - Tahap kedua, yaitu menginsert kembali data2 baru ke PMHN_TF dan ApresiasiDetil, serta mengupdate N_UAS dan juga PRO_HDR dan STS_PRE pada KRS_TF
 
         // TAHAP PERTAMA : Removing
         foreach ($apresiasiMhs->detil as $apresiasiDetil) {
@@ -195,7 +199,7 @@ class NilaiApresiasiController extends Controller
             $pmhnTf->delete();
 
 
-            // Ubah N_UAS pada KRS_TF menjadi null
+            // Ubah N_UAS pada KRS_TF menjadi null dan kembalikan nilai PRO_HDR dan STS_PRE dari ApresiasiDetil
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
@@ -212,12 +216,12 @@ class NilaiApresiasiController extends Controller
             $apresiasiDetil->delete();
         }
 
-        // TAHAP KEDUA : inserting
-        foreach ($request->nilai_matkul as $nilai_matkul) {
+        // TAHAP KEDUA : Inserting
+        foreach ($request->nilai_matkul as $matkul) {
 
             // Sebelum mengupdate data matkul, cek dulu apakah matkul nya sudah dipakai di kegiatan lain atau belum
             $inApresiasiLain = ApresiasiDetil::query()
-                ->where('klkl_id', $nilai_matkul['klkl_id'])
+                ->where('klkl_id', $matkul['klkl_id'])
                 ->whereHas('mahasiswa', function ($mahasiswa) use ($apresiasiMhs) {
                     $mahasiswa
                         ->where('nim', $apresiasiMhs->nim)
@@ -225,29 +229,30 @@ class NilaiApresiasiController extends Controller
                 })
                 ->count();
 
-            // Kalau matkul nya ada di kegiatan lain
+            // Kalau matkul nya ada di kegiatan lain, maka skip ke matkul selanjutnya
             if (!!$inApresiasiLain) continue;
 
             // Ambil data KRS sebelum di update
+            // ini untuk mengambil nilai PRO_HDR dan STS_PRE untuk dimasukkan ke ApresiasiDetil yang baru
             $krsBeforeUpdate = KrsTf::query()
                 ->where('mhs_nim', $apresiasiMhs->nim)
-                ->where('jkul_klkl_id', $nilai_matkul['klkl_id'])
+                ->where('jkul_klkl_id', $matkul['klkl_id'])
                 ->first();
 
             // Insert PMHN_TF
             PmhnTf::create([
                 'semester' => $apresiasiMhs->smt,
-                'klkl_id'  => $nilai_matkul['klkl_id'],
+                'klkl_id'  => $matkul['klkl_id'],
                 'mhs_nim'  => $apresiasiMhs->nim,
                 'tanggal'  => now(),
             ]);
 
 
-            // Update N_UAS pada KRS_TF
+            // Update N_UAS, PRO_HDR dan STS_PRE pada KRS_TF
             $krs = new KrsTf([
                 'mhs_nim'      => $apresiasiMhs->nim,
-                'jkul_klkl_id' => $nilai_matkul['klkl_id'],
-                'nilai_uas'    => $nilai_matkul['nilai_angka'],
+                'jkul_klkl_id' => $matkul['klkl_id'],
+                'nilai_uas'    => $matkul['nilai_angka'],
                 'pro_hdr'      => KrsTf::DEFAULT_PRO_HDR,
                 'sts_pre'      => KrsTf::DEFAULT_STS_PRE,
             ]);
@@ -257,8 +262,8 @@ class NilaiApresiasiController extends Controller
             // Insert ApresiasiDetil baru
             ApresiasiDetil::create([
                 'id_apresiasi'     => $apresiasiMhs->id_apresiasi,
-                'klkl_id'          => $nilai_matkul['klkl_id'],
-                'nilai'            => $nilai_matkul['nilai_angka'],
+                'klkl_id'          => $matkul['klkl_id'],
+                'nilai'            => $matkul['nilai_angka'],
                 'persen_kehadiran' => $krsBeforeUpdate->pro_hdr,
                 'sts_presensi'     => $krsBeforeUpdate->sts_pre,
             ]);
@@ -375,6 +380,7 @@ class NilaiApresiasiController extends Controller
         ]);
     }
 
+    // Ini cetak langsung ke browser / print client side
     public function cetak($id_apresiasi)
     {
         $apresiasiDetil = ApresiasiDetil::where('id_apresiasi', $id_apresiasi)->get();
@@ -394,6 +400,7 @@ class NilaiApresiasiController extends Controller
         return view('nilai-apresiasi.print', compact('apresiasiMhs'));
     }
 
+    // Ini cetak menggunakan MPDF / print server side
     public function cetak_new($id_apresiasi)
     {
         $apresiasiDetil = ApresiasiDetil::where('id_apresiasi', $id_apresiasi)->get();
