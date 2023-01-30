@@ -29,20 +29,23 @@ Route::get('login', function (Request $request) {
 
     // Jika hash nya cocok/sama
     if ($cekLogin) {
-        // Set Auth Login / Set User Session
-        // $karyawan = Karyawan::findOrFail($request->nik);
-        // Auth::login($karyawan);
+        // Set User Session
+        session(['user_auth_allowance' => true]);
+        session(['user_auth_nik' => $request->nik]);
 
         // Teruskan ke aplikasi
         return redirect()->route('nilaiapresiasi.index');
     }
 
+    // Kalau hash nya tidak cocok
+    session(['user_auth_allowance' => false]);
+    session(['user_auth_nik' => null]);
+
     return 'Maaf, anda tidak memiliki hak akses untuk memasuki aplikasi ini';
 });
 
-// Nantinya masukkan route2 aplikasi ke dalam group middleware auth, kecuali route login
-// Middleware auth dapat digunakan karna saat login berhasil, auth user langsung diset
-Route::middleware(['auth'])->group(function () {
+// Nantinya masukkan route2 aplikasi ke dalam group middleware cek_kode, kecuali route login
+Route::middleware(['cek_kode'])->group(function () {
 });
 
 Route::get('/', 'NilaiApresiasiController@index')->name('nilaiapresiasi.index');
