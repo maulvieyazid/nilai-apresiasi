@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +46,7 @@ Route::get('login', function (Request $request) {
     return 'Maaf, anda tidak memiliki hak akses untuk memasuki aplikasi ini';
 });
 
+
 // Jalur khusus developer, biar gk perlu buka SIAKAD
 Route::get('/khusus_dev_ppti', function () {
     // Set User Session
@@ -56,19 +56,20 @@ Route::get('/khusus_dev_ppti', function () {
     return redirect()->route('nilaiapresiasi.index');
 });
 
-// Nantinya masukkan route2 aplikasi ke dalam group middleware cek_kode, kecuali route login
+
+
 Route::middleware(['cek_kode'])->group(function () {
+    Route::get('/', 'NilaiApresiasiController@index')->name('nilaiapresiasi.index');
+    Route::get('/create', 'NilaiApresiasiController@create')->name('nilaiapresiasi.create');
+    Route::get('/edit/{id_apresiasi}', 'NilaiApresiasiController@edit')->name('nilaiapresiasi.edit');
+    Route::get('/cetak/{id_apresiasi}', 'NilaiApresiasiController@cetak')->name('nilaiapresiasi.cetak');
+    Route::get('/cetak_new/{id_apresiasi}', 'NilaiApresiasiController@cetak_new')->name('nilaiapresiasi.cetak_new');
+    Route::put('/update/{apresiasiMhs}', 'NilaiApresiasiController@update')->name('nilaiapresiasi.update');
+    Route::post('/store', 'NilaiApresiasiController@store')->name('nilaiapresiasi.store');
+    Route::delete('/destroy/{apresiasiMhs}', 'NilaiApresiasiController@destroy')->name('nilaiapresiasi.destroy');
+
+    Route::get('/json/nama/mhs/{nim}', 'NilaiApresiasiController@jsonGetNamaMhs')->name('nilaiapresiasi.json.get.nama_mhs');
+    Route::get('/json/matkul/mhs/{nim}/{smt}', 'NilaiApresiasiController@jsonGetMatkulMhs')->name('nilaiapresiasi.json.get.matkul_mhs');
+    Route::get('/json/nilai_huruf/{nilai_angka}', 'NilaiApresiasiController@jsonGetNilaiHuruf')->name('nilaiapresiasi.json.get.nilai_huruf');
 });
 
-Route::get('/', 'NilaiApresiasiController@index')->name('nilaiapresiasi.index');
-Route::get('/create', 'NilaiApresiasiController@create')->name('nilaiapresiasi.create');
-Route::get('/edit/{id_apresiasi}', 'NilaiApresiasiController@edit')->name('nilaiapresiasi.edit');
-Route::get('/cetak/{id_apresiasi}', 'NilaiApresiasiController@cetak')->name('nilaiapresiasi.cetak');
-Route::get('/cetak_new/{id_apresiasi}', 'NilaiApresiasiController@cetak_new')->name('nilaiapresiasi.cetak_new');
-Route::put('/update/{apresiasiMhs}', 'NilaiApresiasiController@update')->name('nilaiapresiasi.update');
-Route::post('/store', 'NilaiApresiasiController@store')->name('nilaiapresiasi.store');
-Route::delete('/destroy/{apresiasiMhs}', 'NilaiApresiasiController@destroy')->name('nilaiapresiasi.destroy');
-
-Route::get('/json/nama/mhs/{nim}', 'NilaiApresiasiController@jsonGetNamaMhs')->name('nilaiapresiasi.json.get.nama_mhs');
-Route::get('/json/matkul/mhs/{nim}/{smt}', 'NilaiApresiasiController@jsonGetMatkulMhs')->name('nilaiapresiasi.json.get.matkul_mhs');
-Route::get('/json/nilai_huruf/{nilai_angka}', 'NilaiApresiasiController@jsonGetNilaiHuruf')->name('nilaiapresiasi.json.get.nilai_huruf');
