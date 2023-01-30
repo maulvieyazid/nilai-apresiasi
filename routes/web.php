@@ -47,6 +47,15 @@ Route::get('login', function (Request $request) {
     return 'Maaf, anda tidak memiliki hak akses untuk memasuki aplikasi ini';
 });
 
+// Jalur khusus developer, biar gk perlu buka SIAKAD
+Route::get('/khusus_dev_ppti', function () {
+    // Set User Session
+    session(['user_auth_allowance' => true]);
+
+    // Teruskan ke aplikasi
+    return redirect()->route('nilaiapresiasi.index');
+});
+
 // Nantinya masukkan route2 aplikasi ke dalam group middleware cek_kode, kecuali route login
 Route::middleware(['cek_kode'])->group(function () {
 });
