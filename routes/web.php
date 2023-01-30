@@ -22,6 +22,9 @@ use Illuminate\Support\Facades\Route;
 
 // NOTE: samakan kode rahasia pada aplikasi sumber (pada SIAKAD) dengan kode rahasia pada aplikasi ini
 Route::get('login', function (Request $request) {
+    // Yang bisa akses aplikasi ini hanya Bu Sekar
+    if ($request->nik != '970216') return 'Maaf, anda tidak memiliki hak akses untuk memasuki aplikasi ini';
+
     $secret_code = config('custom.secret_code');
 
     // Cek kombinasi secret code dan nik yang sudah di hash
