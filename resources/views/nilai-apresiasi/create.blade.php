@@ -143,10 +143,10 @@
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][klkl_id]`" :value="matkul.klkl_id" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][nilai_huruf]`" :value="matkul.nilai_huruf" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_mk]`" :value="matkul.sts_mk" x-bind:disabled="!matkul.centang">
-                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sks]`" :value="matkul.kurikulum.sks" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][sts_pre]`" :value="matkul.sts_pre" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][pro_hdr]`" :value="matkul.pro_hdr" x-bind:disabled="!matkul.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][n_uas]`" :value="matkul.n_uas" x-bind:disabled="!matkul.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${matkul.klkl_id}][jkul_kelas]`" :value="matkul.jkul_kelas" x-bind:disabled="!matkul.centang">
 
                                                         <td class="text-center">
                                                             <!-- Jika dicentang, maka langsung focus ke inputan nilai -->

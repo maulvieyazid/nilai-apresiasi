@@ -16,6 +16,9 @@ class KrsTf extends Model
     const DEFAULT_PRO_HDR = 100;
     const DEFAULT_STS_PRE = null;
 
+    const JENIS_SIMPAN = 1;
+    const JENIS_HAPUS = 2;
+
     // protected $table = 'AAK_MAN.KRS_TF';
     protected $table = 'V_KRST';
 
@@ -94,8 +97,7 @@ class KrsTf extends Model
         $this->fireModelEvent('created', false);
 
         return true;
-    }
- */
+    } */
 
 
     /**
@@ -115,12 +117,12 @@ class KrsTf extends Model
 
         $sql = <<<SQL
             BEGIN
-                {$this->skema}UPD_APPRESIASI_KRS (
+                {$this->skema}UPD_APRESIASI_KRS (
                     :mhs_nim,
                     :jkul_klkl_id,
-                    :nilai_uas,
-                    :pro_hdr,
-                    :sts_pre
+                    :jkul_kelas,
+                    :nilai,
+                    :jenis
                 );
 
             END;
@@ -129,9 +131,9 @@ class KrsTf extends Model
         $stmt = DB::getPdo()->prepare($sql);
         $stmt->bindValue('mhs_nim', $this->mhs_nim);
         $stmt->bindValue('jkul_klkl_id', $this->jkul_klkl_id);
-        $stmt->bindValue('nilai_uas', $this->nilai_uas);
-        $stmt->bindValue('pro_hdr', $this->pro_hdr);
-        $stmt->bindValue('sts_pre', $this->sts_pre);
+        $stmt->bindValue('jkul_kelas', $this->jkul_kelas);
+        $stmt->bindValue('nilai', $this->nilai);
+        $stmt->bindValue('jenis', $this->jenis);
         $stmt->execute();
 
         return true;

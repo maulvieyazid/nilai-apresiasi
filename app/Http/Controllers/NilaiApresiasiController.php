@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\ApresiasiDetil;
 use App\ApresiasiMhs;
+use App\KrsLama;
 use App\KrsTf;
 use App\Mahasiswa;
-use App\PmhnTf;
 use App\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,8 +66,6 @@ class NilaiApresiasiController extends Controller
 
         // Insert Apresiasi Detil berdasarkan id_apresiasi dari Apresiasi Mhs
         foreach ($request->nilai_matkul as $matkul) {
-            // Apresiasi Detil juga menyimpan nilai PRO_HDR, STS_PRE, dan N_UAS dari KRS, sebagai penampung, apabila matkul nya diubah.
-            // Karena saat matkul ditambahkan ke nilai apresiasi, maka PRO_HDR, STS_PRE, dan N_UAS akan diubah.
             ApresiasiDetil::create([
                 'id_apresiasi'     => $apresiasiMhs->id_apresiasi,
                 'klkl_id'          => $matkul['klkl_id'],
@@ -77,24 +75,22 @@ class NilaiApresiasiController extends Controller
                 'uas_lama'         => $matkul['n_uas'],
             ]);
 
-            // NOTE: untuk PMHN_TF, karena tidak memiliki fillable, jadi untuk insert perhatikan attribut2 yang perlu diinsert
-            // di method performInsert
-            PmhnTf::create([
-                'semester' => $request->smt,
-                'klkl_id'  => $matkul['klkl_id'],
-                'mhs_nim'  => $request->nim,
-                'tanggal'  => now(),
+            // Insert Krs Lama
+            KrsLama::create([
+                'mhs_nim'      => $request->nim,
+                'jkul_klkl_id' => $matkul['klkl_id'],
+                'jkul_kelas'   => $matkul['jkul_kelas'],
             ]);
 
-            // Melakukan update N_UAS, PRO_HDR dan STS_PRE pada KRS_TF
+            // Update KRS_TF
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
                 'mhs_nim'      => $request->nim,
                 'jkul_klkl_id' => $matkul['klkl_id'],
-                'nilai_uas'    => $matkul['nilai_angka'],
-                'pro_hdr'      => KrsTf::DEFAULT_PRO_HDR,
-                'sts_pre'      => KrsTf::DEFAULT_STS_PRE,
+                'jkul_kelas'   => $matkul['jkul_kelas'],
+                'nilai'        => $matkul['nilai_angka'],
+                'jenis'        => KrsTf::JENIS_SIMPAN,
             ]);
             $krs->exists = true;
             $krs->save();
@@ -142,10 +138,13 @@ class NilaiApresiasiController extends Controller
 
         // Menambahkan atribut "centang" pada matkul yang masuk ke dalam detil $apresiasiMhs
         $semuaKrs->transform(function ($krs) use ($apresiasiMhs) {
-            $inApresiasiMhs = $apresiasiMhs->detil->contains('klkl_id', $krs->jkul_klkl_id);
+            $detilApresiasi = $apresiasiMhs->detil->firstWhere('klkl_id', $krs->jkul_klkl_id);
 
             // Jika krs ini, masuk ke dalam detil $apresiasiMhs
-            if ($inApresiasiMhs) $krs->centang = true;
+            if (!!$detilApresiasi) {
+                $krs->centang = true;
+                $krs->nilai_apr_detil = $detilApresiasi->nilai;
+            }
 
             return $krs;
         });
@@ -180,38 +179,43 @@ class NilaiApresiasiController extends Controller
 
 
         // Untuk update Nilai Apresiasi, dilakukan dua tahap pemrosesan
-        // - Tahap pertama yaitu menghapus data2 pada PMHN_TF dan pada ApresiasiDetil,
-        //   serta mengosongkan N_UAS dan mengembalikan nilai PRO_HDR dan STS_PRE pada KRS_TF yang sebelumnya ditampung di ApresiasiDetil
-        //
-        // - Tahap kedua, yaitu menginsert kembali data2 baru ke PMHN_TF dan ApresiasiDetil, serta mengupdate N_UAS dan juga PRO_HDR dan STS_PRE pada KRS_TF
+        // - Tahap pertama yaitu removing, pada tahap ini yg dilakukan sama seperti method destroy, yaitu Update KrsTf lalu Hapus Krs Lama lalu Hapus Apresiasi Detil
+        // - Tahap kedua yaitu inserting, pada tahap ini juga sama seperti method create, yaitu insert Apresiasi Detil, Insert Krs Lama, lalu Update KrsTF
 
         // TAHAP PERTAMA : Removing
         foreach ($apresiasiMhs->detil as $apresiasiDetil) {
-            // Hapus PMHN_TF
-            // NOTE: bila instance model tidak didapatkan dari DB, maka attribute "exists" akan bernilai false,
-            // Sedangkan di method delete(), bila "exists" ini bernilai false, maka dia akan langsung return,
-            // dan tidak akan menjalankan method performDeleteOnModel(), maka dari itu attribute ini perlu di set ke true
-            $pmhnTf = new PmhnTf([
-                'semester' => $apresiasiMhs->smt,
-                'klkl_id'  => $apresiasiDetil->klkl_id,
-                'mhs_nim'  => $apresiasiMhs->nim,
-            ]);
-            $pmhnTf->exists = true;
-            $pmhnTf->delete();
+            // Ambil data dari KRS_TF untuk mengambil nilai jkul_kelas nya saja
+            $dataKrs = KrsTf::query()
+                ->where('mhs_nim', $apresiasiMhs->nim)
+                ->where('jkul_klkl_id', $apresiasiDetil->klkl_id)
+                ->first();
 
-
-            // Kembalikan nilai PRO_HDR, STS_PRE dan N_UAS pada KRS dari ApresiasiDetil
+            // Update KrsTF
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $apresiasiDetil->klkl_id,
-                'nilai_uas'    => $apresiasiDetil->uas_lama,
-                'pro_hdr'      => $apresiasiDetil->persen_kehadiran,
-                'sts_pre'      => $apresiasiDetil->sts_presensi,
+                'jkul_kelas'   => $dataKrs->jkul_kelas,
+                'nilai'        => null,
+                'jenis'        => KrsTf::JENIS_HAPUS,
             ]);
             $krs->exists = true;
             $krs->save();
+
+            // Hapus Krs Lama
+            // NOTE: untuk menghapus Krs Lama, tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
+            // melainkan langsung isikan attribute nya ke instance nya
+            $krsLama = new KrsLama([
+                'mhs_nim'      => $apresiasiMhs->nim,
+                'jkul_klkl_id' => $apresiasiDetil->klkl_id,
+                'jkul_kelas'   => $dataKrs->jkul_kelas,
+            ]);
+            // NOTE: bila instance model tidak didapatkan dari DB, maka attribute "exists" akan bernilai false,
+            // Sedangkan di method delete(), bila "exists" ini bernilai false, maka dia akan langsung return,
+            // dan tidak akan menjalankan method performDeleteOnModel(), maka dari itu attribute ini perlu di set ke true
+            $krsLama->exists = true;
+            $krsLama->delete();
 
             // Hapus ApresiasiDetil
             $apresiasiDetil->delete();
@@ -233,32 +237,12 @@ class NilaiApresiasiController extends Controller
             // Kalau matkul nya ada di kegiatan lain, maka skip ke matkul selanjutnya
             if (!!$inApresiasiLain) continue;
 
-            // Ambil data KRS sebelum di update
+            // Ambil data KRS sebelum di Update
             // ini untuk mengambil nilai PRO_HDR, STS_PRE, dan N_UAS untuk dimasukkan ke ApresiasiDetil yang baru
             $krsBeforeUpdate = KrsTf::query()
                 ->where('mhs_nim', $apresiasiMhs->nim)
                 ->where('jkul_klkl_id', $matkul['klkl_id'])
                 ->first();
-
-            // Insert PMHN_TF
-            PmhnTf::create([
-                'semester' => $apresiasiMhs->smt,
-                'klkl_id'  => $matkul['klkl_id'],
-                'mhs_nim'  => $apresiasiMhs->nim,
-                'tanggal'  => now(),
-            ]);
-
-
-            // Update N_UAS, PRO_HDR dan STS_PRE pada KRS_TF
-            $krs = new KrsTf([
-                'mhs_nim'      => $apresiasiMhs->nim,
-                'jkul_klkl_id' => $matkul['klkl_id'],
-                'nilai_uas'    => $matkul['nilai_angka'],
-                'pro_hdr'      => KrsTf::DEFAULT_PRO_HDR,
-                'sts_pre'      => KrsTf::DEFAULT_STS_PRE,
-            ]);
-            $krs->exists = true;
-            $krs->save();
 
             // Insert ApresiasiDetil baru
             ApresiasiDetil::create([
@@ -269,6 +253,26 @@ class NilaiApresiasiController extends Controller
                 'sts_presensi'     => $krsBeforeUpdate->sts_pre,
                 'uas_lama'         => $krsBeforeUpdate->n_uas,
             ]);
+
+            // Insert Krs Lama
+            KrsLama::create([
+                'mhs_nim'      => $apresiasiMhs->nim,
+                'jkul_klkl_id' => $matkul['klkl_id'],
+                'jkul_kelas'   => $matkul['jkul_kelas'],
+            ]);
+
+            // Update KRS_TF
+            // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
+            // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
+            $krs = new KrsTf([
+                'mhs_nim'      => $apresiasiMhs->nim,
+                'jkul_klkl_id' => $matkul['klkl_id'],
+                'jkul_kelas'   => $matkul['jkul_kelas'],
+                'nilai'        => $matkul['nilai_angka'],
+                'jenis'        => KrsTf::JENIS_SIMPAN,
+            ]);
+            $krs->exists = true;
+            $krs->save();
         }
 
         return back()->with('success', "Nilai Apresiasi Mahasiswa berhasil diupdate.");
@@ -283,36 +287,39 @@ class NilaiApresiasiController extends Controller
         // Looping apresiasi detil
         foreach ($apresiasiMhs->detil as $apresiasiDetil) {
 
-            // NOTE: untuk menghapus PmhnTf, tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
-            // melainkan langsung isikan attribute nya ke instance nya
+            // Ambil data dari KRS_TF untuk mengambil nilai jkul_kelas nya saja
+            $dataKrs = KrsTf::query()
+                ->where('mhs_nim', $apresiasiMhs->nim)
+                ->where('jkul_klkl_id', $apresiasiDetil->klkl_id)
+                ->first();
 
-            $pmhnTf = new PmhnTf([
-                'semester' => $apresiasiMhs->smt,
-                'klkl_id'  => $apresiasiDetil->klkl_id,
-                'mhs_nim'  => $apresiasiMhs->nim,
-            ]);
-
-            // NOTE: bila instance model tidak didapatkan dari DB, maka attribute "exists" akan bernilai false,
-            // Sedangkan di method delete(), bila "exists" ini bernilai false, maka dia akan langsung return,
-            // dan tidak akan menjalankan method performDeleteOnModel(), maka dari itu attribute ini perlu di set ke true
-            $pmhnTf->exists = true;
-
-            // Hapus PmhnTf
-            $pmhnTf->delete();
-
-            // Kembalikan nilai PRO_HDR, STS_PRE dan N_UAS pada KRS dari ApresiasiDetil
+            // Update KRS_TF
             // NOTE : update dan insert sama2 memanggil fungsi save(), tetapi agar bisa menjalankan method performUpdate(),
             // maka atribut "exists" harus bernilai true, bila tidak, maka akan menjalankan method performInsert().
             $krs = new KrsTf([
                 'mhs_nim'      => $apresiasiMhs->nim,
                 'jkul_klkl_id' => $apresiasiDetil->klkl_id,
-                'nilai_uas'    => $apresiasiDetil->uas_lama,
-                'pro_hdr'      => $apresiasiDetil->persen_kehadiran,
-                'sts_pre'      => $apresiasiDetil->sts_presensi,
+                'jkul_kelas'   => $dataKrs->jkul_kelas,
+                'nilai'        => null,
+                'jenis'        => KrsTf::JENIS_HAPUS,
             ]);
             $krs->exists = true;
             $krs->save();
 
+            // Hapus Krs Lama
+            // NOTE: untuk menghapus Krs Lama, tidak perlu mengambil data ke DB menggunakan get() ataupun first(),
+            // melainkan langsung isikan attribute nya ke instance nya
+            $krsLama = new KrsLama([
+                'mhs_nim'      => $apresiasiMhs->nim,
+                'jkul_klkl_id' => $apresiasiDetil->klkl_id,
+                'jkul_kelas'   => $dataKrs->jkul_kelas,
+            ]);
+
+            // NOTE: bila instance model tidak didapatkan dari DB, maka attribute "exists" akan bernilai false,
+            // Sedangkan di method delete(), bila "exists" ini bernilai false, maka dia akan langsung return,
+            // dan tidak akan menjalankan method performDeleteOnModel(), maka dari itu attribute ini perlu di set ke true
+            $krsLama->exists = true;
+            $krsLama->delete();
 
             // Hapus Apresiasi Detil
             $apresiasiDetil->delete();

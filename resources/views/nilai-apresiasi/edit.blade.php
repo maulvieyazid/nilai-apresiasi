@@ -136,6 +136,7 @@
                                                         <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][klkl_id]`" :value="krs.jkul_klkl_id" x-bind:disabled="!krs.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_huruf]`" :value="krs.n_huruf" x-bind:disabled="!krs.centang">
                                                         <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][sts_mk]`" :value="krs.sts_mk" x-bind:disabled="!krs.centang">
+                                                        <input type="hidden" :name="`nilai_matkul[${krs.jkul_klkl_id}][jkul_kelas]`" :value="krs.jkul_kelas" x-bind:disabled="!krs.centang">
 
                                                         <td class="text-center">
                                                             <!-- Jika dicentang, maka langsung focus ke inputan nilai -->
@@ -154,8 +155,9 @@
                                                             <span x-text="krs.kurikulum.sks"></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <input type="number" step="any" class="form-control" :id="$id('matkul-konversi')" placeholder="Nilai" x-model="krs.n_uas" :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_angka]`"
-                                                                x-bind:disabled="!krs.centang" {{-- @input.debounce="getNilaiHuruf(krs)" --}}>
+                                                            <input type="number" step="any" class="form-control" :id="$id('matkul-konversi')" placeholder="Nilai" x-model="krs.nilai_apr_detil"
+                                                                :name="`nilai_matkul[${krs.jkul_klkl_id}][nilai_angka]`" x-bind:disabled="!krs.centang">
+                                                            {{-- @input.debounce="getNilaiHuruf(krs)" --}}
                                                         </td>
                                                         {{-- <td class="text-center">
                                                             <span x-text="krs.n_huruf"></span>
@@ -261,7 +263,7 @@
 
                         // Cek jika ada nilai yang null pada matakuliah yang dicentang / dipilih
                         for (const krs of this.krsTercentang) {
-                            if (!krs.n_uas) {
+                            if (!krs.nilai_apr_detil) {
                                 Notiflix.Notify.failure('Nilai Matakuliah yang dipilih tidak boleh kosong.');
                                 return;
                             }
