@@ -5,6 +5,11 @@
             <h5>{{ config('app.name', 'Aplikasi Nilai Apresiasi') }}</h5>
         </div>
         <div class="header-top-right">
+            <a href="https://siis.dinamika.ac.id/" class="btn btn-outline-danger">
+                <i class="icon-mid bi bi-box-arrow-left me-2"></i>
+                Logout
+            </a>
+
 
             {{-- <div class="dropdown">
                 <a href="#" class="user-dropdown d-flex dropend" data-bs-toggle="dropdown" aria-expanded="false">
