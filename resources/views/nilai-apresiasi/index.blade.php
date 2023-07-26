@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
+@push('styles')
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/vendors/jstable/jstable.css') }}">
+@endpush
+
+
 @section('content')
     <div class="page-heading">
         <h3>Entry Nilai Apresiasi Mahasiswa</h3>
@@ -23,7 +28,7 @@
 
                     <div class="card-body">
                         <div>
-                            <table class="table table-bordered table-hover">
+                            <table class="table table-bordered table-hover" id="masterTable">
                                 <thead>
                                     <tr>
                                         <th rowspan="2" class="text-center">Semester</th>
@@ -126,6 +131,11 @@
 
 @push('scripts')
     <script src="{{ asset('assets/vendors/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('assets/vendors/jstable/jstable.min.js') }}"></script>
+
+    <script>
+        let masterTable = new JSTable("#masterTable");
+    </script>
     <script>
         async function hapus(btn, apresiasiMhs) {
             const {
